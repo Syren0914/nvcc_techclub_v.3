@@ -444,7 +444,7 @@ export default function ClubHomePage() {
             >
               <div className="rounded-xl overflow-hidden shadow-2xl border border-border/40 bg-gradient-to-b from-background to-muted/20">
                 <Image
-                  src="/placeholder.svg?height=720&width=1280"
+                  src="/loundon.jpg"
                   width={1280}
                   height={720}
                   alt="TechClub members collaborating on a project"
