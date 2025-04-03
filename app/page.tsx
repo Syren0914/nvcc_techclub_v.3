@@ -150,38 +150,38 @@ export default function ClubHomePage() {
 
   const teamMembers = [
     {
-      name: "Alex Johnson",
+      name: "Jun Ip",
       role: "Club President",
       bio: "Computer Science major with a passion for AI and machine learning.",
       image: "/placeholder.svg?height=100&width=100",
     },
     {
-      name: "Sam Rodriguez",
+      name: "Erdene Batbayar",
       role: "Vice President",
       bio: "Full-stack developer specializing in React and Node.js applications.",
       image: "/placeholder.svg?height=100&width=100",
     },
     {
-      name: "Jamie Lee",
-      role: "Treasurer",
+      name: "Estabon Gandarillas",
+      role: "Media Officer",
       bio: "Cybersecurity enthusiast with experience in penetration testing.",
       image: "/placeholder.svg?height=100&width=100",
     },
     {
-      name: "Taylor Smith",
+      name: "Deigo Foncesca",
       role: "Events Coordinator",
       bio: "Game developer and UI/UX designer with a creative approach to problem-solving.",
       image: "/placeholder.svg?height=100&width=100",
     },
     {
-      name: "Jordan Patel",
+      name: "Christian Galvez",
       role: "Technical Lead",
       bio: "Robotics specialist with multiple competition wins under their belt.",
       image: "/placeholder.svg?height=100&width=100",
     },
     {
-      name: "Casey Wong",
-      role: "Outreach Coordinator",
+      name: "Hashem Anwari",
+      role: "Advisor",
       bio: "Networking expert who loves connecting people and technologies.",
       image: "/placeholder.svg?height=100&width=100",
     },
@@ -287,38 +287,38 @@ export default function ClubHomePage() {
       >
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2 font-bold">
-            <div className="size-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
-              TC
+            <div className="size-14 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
+              <Image src="/techclub.png" width={150} height={150} alt={""}></Image>
             </div>
             <span>TechClub</span>
           </div>
           <nav className="hidden md:flex gap-8 mx-auto ">
             <Link
-              href="#about"
+              href="/about"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               About Us
             </Link>
             <Link
-              href="#projects"
+              href="/projects"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Projects
             </Link>
             <Link
-              href="#events"
+              href="/events"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Events
             </Link>
             <Link
-              href="#resources"
+              href="/resources"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Resources
             </Link>
             <Link
-              href="#community"
+              href="/community"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Community
@@ -466,8 +466,8 @@ export default function ClubHomePage() {
               <div className="flex items-center gap-4">
                 <Calendar className="size-8 md:size-10" />
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold">Upcoming: Game Jam Weekend</h2>
-                  <p className="text-primary-foreground/80">June 12-14, 2025 • Innovation Hub</p>
+                  <h2 className="text-xl md:text-2xl font-bold">Upcoming: Blender Workshop </h2>
+                  <p className="text-primary-foreground/80">April 03, 2025 • LC 302E</p>
                 </div>
               </div>
               <Button variant="secondary" className="rounded-full whitespace-nowrap">
@@ -507,7 +507,7 @@ export default function ClubHomePage() {
               >
                 <div className="rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="/about.jpg"
                     width={800}
                     height={600}
                     alt="TechClub team at a hackathon"
@@ -543,14 +543,14 @@ export default function ClubHomePage() {
                   <div className="flex items-start gap-2">
                     <Clock className="size-5 text-primary mt-0.5" />
                     <div>
-                      <p className="font-medium">General Meetings: Wednesdays, 6:00 PM - 7:30 PM</p>
-                      <p className="text-sm text-muted-foreground">Tech Building, Room 302</p>
+                      <p className="font-medium">General Meetings: Thursday, 2:30 PM - 4:00 PM</p>
+                      <p className="text-sm text-muted-foreground">LC Building, LC Room 302E</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2 mt-2">
                     <Video className="size-5 text-primary mt-0.5" />
                     <div>
-                      <p className="font-medium">Online Workshops: Fridays, 5:00 PM - 6:30 PM</p>
+                      <p className="font-medium">Online Workshops: Coming Soon... </p>
                       <p className="text-sm text-muted-foreground">Via Zoom (link shared with members)</p>
                     </div>
                   </div>
@@ -994,7 +994,7 @@ export default function ClubHomePage() {
                   <p className="font-medium mb-2">Contact Us</p>
                   <div className="flex items-center gap-2 text-sm">
                     <Mail className="size-4" />
-                    <span>techclub@university.edu</span>
+                    <span>techclub@gmail.co</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm mt-1">
                     <MessageSquare className="size-4" />
@@ -1009,7 +1009,7 @@ export default function ClubHomePage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                <Card className="overflow-hidden border-white/20 bg-white/10 backdrop-blur">
+                <Card className="overflow-hidden border-white/20 bg-black backdrop-blur">
                   <CardHeader>
                     <CardTitle className="text-white">Join TechClub</CardTitle>
                     <CardDescription className="text-white/80">Fill out this form to become a member</CardDescription>
@@ -1070,7 +1070,7 @@ export default function ClubHomePage() {
                           </option>
                         </select>
                       </div>
-                      <Button className="w-full rounded-full bg-white text-primary hover:bg-white/90">
+                      <Button className="w-full rounded-full bg-black text-black  text-primary hover:bg-white hover:text-black">
                         Submit Application
                       </Button>
                     </form>
