@@ -22,7 +22,7 @@ export default function AboutPage() {
 
   const teamMembers = [
     {
-      name: "Alex Johnson",
+      name: "Jun Ip",
       role: "Club President",
       bio: "Computer Science major with a passion for AI and machine learning. Alex has been with the club since its founding and previously served as the Technical Lead before becoming President.",
       image: "/placeholder.svg?height=400&width=400",
@@ -33,8 +33,8 @@ export default function AboutPage() {
       linkedin: "https://linkedin.com/in/alexj",
     },
     {
-      name: "Sam Rodriguez",
-      role: "Vice President",
+      name: "Erdene Batbayar",
+      role: "Vice President , Treasurer",
       bio: "Full-stack developer specializing in React and Node.js applications. Sam joined the club in their sophomore year and has led several successful web development projects.",
       image: "/placeholder.svg?height=400&width=400",
       year: "Junior",
@@ -44,8 +44,8 @@ export default function AboutPage() {
       linkedin: "https://linkedin.com/in/samr",
     },
     {
-      name: "Jamie Lee",
-      role: "Treasurer",
+      name: "Estabon Gandarillas",
+      role: "Media Officer",
       bio: "Cybersecurity enthusiast with experience in penetration testing. Jamie manages the club's finances and has organized several successful fundraising events.",
       image: "/placeholder.svg?height=400&width=400",
       year: "Junior",
@@ -55,8 +55,8 @@ export default function AboutPage() {
       linkedin: "https://linkedin.com/in/jamiel",
     },
     {
-      name: "Taylor Smith",
-      role: "Events Coordinator",
+      name: "Christian Galvez",
+      role: "Former Treasurer",
       bio: "Game developer and UI/UX designer with a creative approach to problem-solving. Taylor has transformed the club's event program, increasing attendance by over 50%.",
       image: "/placeholder.svg?height=400&width=400",
       year: "Sophomore",
@@ -66,8 +66,8 @@ export default function AboutPage() {
       linkedin: "https://linkedin.com/in/taylors",
     },
     {
-      name: "Jordan Patel",
-      role: "Technical Lead",
+      name: "Deigo Fonseca",
+      role: "Former Officer",
       bio: "Robotics specialist with multiple competition wins under their belt. Jordan oversees all technical projects and mentors new members in hardware and software development.",
       image: "/placeholder.svg?height=400&width=400",
       year: "Senior",
@@ -77,8 +77,8 @@ export default function AboutPage() {
       linkedin: "https://linkedin.com/in/jordanp",
     },
     {
-      name: "Casey Wong",
-      role: "Outreach Coordinator",
+      name: "Hashem Anwari",
+      role: "Teacher Advisor",
       bio: "Networking expert who loves connecting people and technologies. Casey has established partnerships with several tech companies and other campus organizations.",
       image: "/placeholder.svg?height=400&width=400",
       year: "Junior",
@@ -87,28 +87,7 @@ export default function AboutPage() {
       github: "https://github.com/caseyw",
       linkedin: "https://linkedin.com/in/caseyw",
     },
-    {
-      name: "Morgan Chen",
-      role: "Secretary",
-      bio: "Data science enthusiast with a knack for organization. Morgan keeps detailed records of all club activities and manages internal communications.",
-      image: "/placeholder.svg?height=400&width=400",
-      year: "Sophomore",
-      contact: "morgan.chen@university.edu",
-      specialties: ["Data Science", "Documentation", "Python"],
-      github: "https://github.com/morganc",
-      linkedin: "https://linkedin.com/in/morganc",
-    },
-    {
-      name: "Riley Kim",
-      role: "Marketing Director",
-      bio: "Digital marketing specialist with experience in social media management. Riley has significantly increased the club's online presence and member recruitment.",
-      image: "/placeholder.svg?height=400&width=400",
-      year: "Junior",
-      contact: "riley.kim@university.edu",
-      specialties: ["Digital Marketing", "Graphic Design", "Social Media"],
-      github: "https://github.com/rileyk",
-      linkedin: "https://linkedin.com/in/rileyk",
-    },
+    
   ]
 
   const milestones = [
@@ -231,9 +210,12 @@ export default function AboutPage() {
                     Meet Our Team
                     <ChevronRight className="ml-1 size-4" />
                   </Button>
+                  <Link href={"https://discord.gg/pwcdweEwjM"}>
                   <Button variant="outline" className="rounded-full">
                     Join TechClub
+                    
                   </Button>
+                  </Link>
                 </div>
               </motion.div>
               <motion.div
@@ -243,7 +225,7 @@ export default function AboutPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="/tech.jpg"
                     width={800}
                     height={600}
                     alt="TechClub team at a hackathon"
@@ -706,9 +688,12 @@ export default function AboutPage() {
                 Become a member today and get access to all our resources, events, and a community of tech enthusiasts.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href={"https://discord.gg/pwcdweEwjM"}>
                 <Button size="lg" variant="secondary" className="rounded-full">
-                  Apply for Membership
+                  Join the Discord Community
+                  
                 </Button>
+                </Link>
                 <Button
                   size="lg"
                   variant="outline"

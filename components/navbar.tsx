@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useMobile } from "@/hooks/use-mobile"
+import Image from "next/image"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -32,8 +33,8 @@ export default function Navbar() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <div className="size-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-              TC
+            <div className="size-16 rounded-full  flex items-center justify-center text-primary-foreground font-bold">
+              <Image src="/techclub.png" width={200} height={200} alt=""></Image>
             </div>
             <span className="font-bold text-xl hidden sm:inline-block">TechClub</span>
           </Link>

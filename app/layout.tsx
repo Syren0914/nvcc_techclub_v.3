@@ -7,10 +7,10 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TechClub - Learn, Build, Connect",
+  title: "TechClub -NVCC Learn, Build, Connect",
   description:
     "Join our community of tech enthusiasts exploring web development, cybersecurity, game development, and robotics.",
-    generator: 'v0.dev'
+    
 }
 
 export default function RootLayout({
@@ -20,6 +20,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}

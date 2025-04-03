@@ -95,23 +95,7 @@ export default function ClubHomePage() {
         },
       ],
     },
-    {
-      title: "Cybersecurity",
-      description: "Learning ethical hacking, penetration testing, and security best practices.",
-      icon: <Shield className="size-5" />,
-      projects: [
-        {
-          name: "CTF Challenges",
-          description: "Capture the Flag challenges for members to practice security skills.",
-          link: "https://github.com/techclub/ctf-challenges",
-        },
-        {
-          name: "Security Scanner",
-          description: "A tool to scan websites for common security vulnerabilities.",
-          link: "https://github.com/techclub/security-scanner",
-        },
-      ],
-    },
+    
     {
       title: "Game Development",
       description: "Creating games using Unity, Unreal Engine, and web-based game frameworks.",
@@ -146,6 +130,23 @@ export default function ClubHomePage() {
         },
       ],
     },
+    {
+      title: "Cybersecurity",
+      description: "Learning ethical hacking, penetration testing, and security best practices.",
+      icon: <Shield className="size-5" />,
+      projects: [
+        {
+          name: "CTF Challenges",
+          description: "Capture the Flag challenges for members to practice security skills.",
+          link: "https://github.com/techclub/ctf-challenges",
+        },
+        {
+          name: "Security Scanner",
+          description: "A tool to scan websites for common security vulnerabilities.",
+          link: "https://github.com/techclub/security-scanner",
+        },
+      ],
+    },
   ]
 
   const teamMembers = [
@@ -159,30 +160,30 @@ export default function ClubHomePage() {
       name: "Erdene Batbayar",
       role: "Vice President",
       bio: "Full-stack developer specializing in React and Node.js applications.",
-      image: "/placeholder.svg?height=100&width=100",
+      image: "/erdene.jpg",
     },
     {
       name: "Estabon Gandarillas",
       role: "Media Officer",
-      bio: "Cybersecurity enthusiast with experience in penetration testing.",
+      bio: "Computer Science major with a passion for VR and AR technologies.",
       image: "/placeholder.svg?height=100&width=100",
     },
     {
       name: "Deigo Foncesca",
-      role: "Events Coordinator",
-      bio: "Game developer and UI/UX designer with a creative approach to problem-solving.",
-      image: "/placeholder.svg?height=100&width=100",
+      role: "Former Officer",
+      bio: "Game developer with a creative approach to problem-solving.",
+      image: "/deigo.jpg",
     },
     {
       name: "Christian Galvez",
-      role: "Technical Lead",
-      bio: "Robotics specialist with multiple competition wins under their belt.",
-      image: "/placeholder.svg?height=100&width=100",
+      role: "Former Treasurer",
+      bio: "Electrical Engineering student with a focus on IoT and embedded systems.",
+      image: "/christian.jpg",
     },
     {
       name: "Hashem Anwari",
       role: "Advisor",
-      bio: "Networking expert who loves connecting people and technologies.",
+      bio: "Professor of Computer Science with expertise in computer engineering and data science.",
       image: "/placeholder.svg?height=100&width=100",
     },
   ]
@@ -190,8 +191,8 @@ export default function ClubHomePage() {
   const upcomingEvents = [
     {
       title: "Intro to Ethical Hacking",
-      date: "May 15, 2025",
-      time: "6:00 PM - 8:00 PM",
+      date: "TBA",
+      time: "2:30 PM - 4:00 PM",
       location: "Tech Building, Room 302",
       description: "Learn the basics of ethical hacking and penetration testing in this hands-on workshop.",
       type: "Workshop",
@@ -199,8 +200,8 @@ export default function ClubHomePage() {
     },
     {
       title: "Web Development Bootcamp",
-      date: "May 20, 2025",
-      time: "5:30 PM - 7:30 PM",
+      date: "TBA",
+      time: "2:30 PM - 4:00 PM",
       location: "Online (Zoom)",
       description: "A beginner-friendly introduction to HTML, CSS, and JavaScript for web development.",
       type: "Workshop",
@@ -208,7 +209,7 @@ export default function ClubHomePage() {
     },
     {
       title: "Data Center Field Trip",
-      date: "June 5, 2025",
+      date: "TBA",
       time: "1:00 PM - 4:00 PM",
       location: "City Data Center",
       description: "Visit the local data center to see how large-scale computing infrastructure works.",
@@ -217,7 +218,7 @@ export default function ClubHomePage() {
     },
     {
       title: "Game Jam Weekend",
-      date: "June 12-14, 2025",
+      date: "TBA",
       time: "Starts at 5:00 PM Friday",
       location: "Innovation Hub",
       description: "48-hour game development challenge. Form teams and create a game from scratch!",
@@ -287,7 +288,7 @@ export default function ClubHomePage() {
       >
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2 font-bold">
-            <div className="size-14 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
+            <div className="size-20 rounded-lg  from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
               <Image src="/techclub.png" width={150} height={150} alt={""}></Image>
             </div>
             <span>TechClub</span>
@@ -336,7 +337,8 @@ export default function ClubHomePage() {
               Log in
             </Link>
             <Button className="rounded-full">
-              Join Club
+              <Link href={"https://discord.com/invite/VHbs3MrgMC"}>Join Club</Link>
+              
               <ChevronRight className="ml-1 size-4" />
             </Button>
           </div>
@@ -619,7 +621,7 @@ export default function ClubHomePage() {
                   <TabsTrigger value="web" className="rounded-full px-4">
                     Web Development
                   </TabsTrigger>
-                  <TabsTrigger value="security" className="rounded-full px-4">
+                  <TabsTrigger value="cybersecurity" className="rounded-full px-4">
                     Cybersecurity
                   </TabsTrigger>
                   <TabsTrigger value="game" className="rounded-full px-4">
@@ -749,7 +751,8 @@ export default function ClubHomePage() {
 
             <div className="flex justify-center mt-8">
               <Button variant="outline" className="rounded-full">
-                View All Events
+                <Link href={"/events"}>View All Events</Link>
+                
                 <ChevronRight className="ml-1 size-4" />
               </Button>
             </div>

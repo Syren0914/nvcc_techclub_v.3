@@ -610,9 +610,12 @@ export default function CommunityPage() {
                 environment.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href={"https://discord.gg/pwcdweEwjM"}>
                 <Button size="lg" variant="secondary" className="rounded-full">
+                  
                   Join TechClub
                 </Button>
+                </Link>
                 <Button
                   size="lg"
                   variant="outline"

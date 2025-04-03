@@ -288,7 +288,7 @@ export default function ResourcesPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="/resources.jpg"
                     width={800}
                     height={600}
                     alt="Students learning from online resources"
@@ -1042,9 +1042,11 @@ export default function ResourcesPage() {
                 Join TechClub to access all our resources, attend workshops, and connect with fellow learners.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href={"https://discord.gg/pwcdweEwjM"} target="_blank">
+
                 <Button size="lg" variant="secondary" className="rounded-full">
                   Join TechClub
-                </Button>
+                </Button></Link>
                 <Button
                   size="lg"
                   variant="outline"

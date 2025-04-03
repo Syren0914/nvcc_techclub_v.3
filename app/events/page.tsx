@@ -54,7 +54,7 @@ export default function EventsPage() {
         "Learn the basics of ethical hacking and penetration testing in this hands-on workshop. We'll cover reconnaissance, scanning, exploitation, and reporting. Bring your laptop with Kali Linux installed (VMs are fine).",
       type: "Workshop",
       isOnline: false,
-      image: "/placeholder.svg?height=300&width=500",
+      image: "/ethi.png",
       capacity: 30,
       registered: 18,
       tags: ["Cybersecurity", "Beginner Friendly"],
@@ -69,7 +69,7 @@ export default function EventsPage() {
         "A beginner-friendly introduction to HTML, CSS, and JavaScript for web development. This is the first session in our 6-week web development series. No prior experience required!",
       type: "Workshop",
       isOnline: true,
-      image: "/placeholder.svg?height=300&width=500",
+      image: "/web.png",
       capacity: 50,
       registered: 32,
       tags: ["Web Development", "Beginner Friendly"],
@@ -84,7 +84,7 @@ export default function EventsPage() {
         "Visit the local data center to see how large-scale computing infrastructure works. Transportation will be provided from campus. Limited spots available!",
       type: "Field Trip",
       isOnline: false,
-      image: "/placeholder.svg?height=300&width=500",
+      image: "/data.png",
       capacity: 20,
       registered: 15,
       tags: ["Infrastructure", "Networking"],
@@ -274,7 +274,7 @@ export default function EventsPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="/hackathon.jpg"
                     width={800}
                     height={600}
                     alt="TechClub workshop in progress"
