@@ -12,149 +12,101 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
+import { Milestone, TeamMember } from "../types/team"
+import { fetchMilestones, fetchTeamMembers } from "../appwrite/api"
+
+
+  
+
+  
 
 export default function AboutPage() {
   const [mounted, setMounted] = useState(false)
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]); // Assuming you have a 
 
   useEffect(() => {
     setMounted(true)
   }, [])
+  useEffect(() => {
+    const loadData = async () => {
+      const teamData = await fetchTeamMembers();
+      if (teamData) setTeam(teamData);
+  
+      const milestoneData = await fetchMilestones();
+      if (milestoneData) setMilestones(milestoneData);
+    };
+    loadData();
+  }, []);
+  
+  
 
-  const teamMembers = [
-    {
-      name: "Jun Ip",
-      role: "Club President",
-      bio: "Computer Science major with a passion for AI and machine learning. Alex has been with the club since its founding and previously served as the Technical Lead before becoming President.",
-      image: "/placeholder.svg?height=400&width=400",
-      year: "Senior",
-      contact: "alex.johnson@university.edu",
-      specialties: ["Machine Learning", "Python", "Project Management"],
-      github: "https://github.com/alexj",
-      linkedin: "https://linkedin.com/in/alexj",
-    },
-    {
-      name: "Erdene Batbayar",
-      role: "Vice President , Treasurer",
-      bio: "Full-stack developer specializing in React and Node.js applications. Sam joined the club in their sophomore year and has led several successful web development projects.",
-      image: "/erdene.jpg",
-      year: "Junior",
-      contact: "sam.rodriguez@university.edu",
-      specialties: ["React", "Node.js", "UI/UX Design"],
-      github: "https://github.com/samr",
-      linkedin: "https://linkedin.com/in/samr",
-    },
-    {
-      name: "Estabon Gandarillas",
-      role: "Media Officer",
-      bio: "Cybersecurity enthusiast with experience in penetration testing. Jamie manages the club's finances and has organized several successful fundraising events.",
-      image: "/placeholder.svg?height=400&width=400",
-      year: "Junior",
-      contact: "jamie.lee@university.edu",
-      specialties: ["Cybersecurity", "Financial Planning", "Event Organization"],
-      github: "https://github.com/jamiel",
-      linkedin: "https://linkedin.com/in/jamiel",
-    },
-    {
-      name: "Christian Galvez",
-      role: "Former Treasurer",
-      bio: "Game developer and UI/UX designer with a creative approach to problem-solving. Taylor has transformed the club's event program, increasing attendance by over 50%.",
-      image: "/christian.jpg",
-      year: "Sophomore",
-      contact: "taylor.smith@university.edu",
-      specialties: ["Game Development", "Event Planning", "Unity"],
-      github: "https://github.com/taylors",
-      linkedin: "https://linkedin.com/in/taylors",
-    },
-    {
-      name: "Deigo Fonseca",
-      role: "Former Officer",
-      bio: "Robotics specialist with multiple competition wins under their belt. Jordan oversees all technical projects and mentors new members in hardware and software development.",
-      image: "/deigo.jpg",
-      year: "Senior",
-      contact: "jordan.patel@university.edu",
-      specialties: ["Robotics", "Arduino", "C++"],
-      github: "https://github.com/jordanp",
-      linkedin: "https://linkedin.com/in/jordanp",
-    },
-    {
-      name: "Hashem Anwari",
-      role: "Teacher Advisor",
-      bio: "Networking expert who loves connecting people and technologies. Casey has established partnerships with several tech companies and other campus organizations.",
-      image: "/placeholder.svg?height=400&width=400",
-      year: "Junior",
-      contact: "casey.wong@university.edu",
-      specialties: ["Networking", "Public Relations", "Partnership Development"],
-      github: "https://github.com/caseyw",
-      linkedin: "https://linkedin.com/in/caseyw",
-    },
-    
-  ]
 
-  const milestones = [
-    {
-      year: "2020",
-      title: "Club Founded",
-      description:
-        "TechClub was established by a group of 10 Computer Science students looking to expand their learning beyond the classroom.",
-    },
-    {
-      year: "2020",
-      title: "First Hackathon",
-      description:
-        "Organized our first internal 24-hour hackathon with 25 participants, resulting in 8 completed projects.",
-    },
-    {
-      year: "2021",
-      title: "50 Members Milestone",
-      description: "Reached 50 active members from various departments across the college.",
-    },
-    {
-      year: "2021",
-      title: "Industry Partnership",
-      description:
-        "Established our first industry partnership with TechCorp, providing internship opportunities for members.",
-    },
-    {
-      year: "2022",
-      title: "Regional Hackathon Winners",
-      description: "Our team won first place at the Regional University Hackathon with their project 'EcoTrack'.",
-    },
-    {
-      year: "2022",
-      title: "Workshop Series Launch",
-      description: "Launched our weekly workshop series covering topics from web development to cybersecurity.",
-    },
-    {
-      year: "2023",
-      title: "100 Members Milestone",
-      description:
-        "Celebrated reaching 100 active members and expanded to include students from neighboring universities.",
-    },
-    {
-      year: "2023",
-      title: "First Annual Tech Conference",
-      description:
-        "Organized our first annual tech conference with 200+ attendees and speakers from major tech companies.",
-    },
-    {
-      year: "2024",
-      title: "Robotics Competition Win",
-      description:
-        "Our robotics team won the National University Robotics Challenge with their autonomous navigation robot.",
-    },
-    {
-      year: "2024",
-      title: "New Club Space",
-      description:
-        "Secured a dedicated club space in the Technology Building with workstations, meeting areas, and a small hardware lab.",
-    },
-    {
-      year: "2025",
-      title: "200+ Members",
-      description:
-        "Currently at over 200 active members with four specialized divisions: Web Development, Cybersecurity, Game Development, and Robotics.",
-    },
-  ]
+  // const milestones = [
+  //   {
+  //     year: "2020",
+  //     title: "Club Founded",
+  //     description:
+  //       "TechClub was established by a group of 10 Computer Science students looking to expand their learning beyond the classroom.",
+  //   },
+  //   {
+  //     year: "2020",
+  //     title: "First Hackathon",
+  //     description:
+  //       "Organized our first internal 24-hour hackathon with 25 participants, resulting in 8 completed projects.",
+  //   },
+  //   {
+  //     year: "2021",
+  //     title: "50 Members Milestone",
+  //     description: "Reached 50 active members from various departments across the college.",
+  //   },
+  //   {
+  //     year: "2021",
+  //     title: "Industry Partnership",
+  //     description:
+  //       "Established our first industry partnership with TechCorp, providing internship opportunities for members.",
+  //   },
+  //   {
+  //     year: "2022",
+  //     title: "Regional Hackathon Winners",
+  //     description: "Our team won first place at the Regional University Hackathon with their project 'EcoTrack'.",
+  //   },
+  //   {
+  //     year: "2022",
+  //     title: "Workshop Series Launch",
+  //     description: "Launched our weekly workshop series covering topics from web development to cybersecurity.",
+  //   },
+  //   {
+  //     year: "2023",
+  //     title: "100 Members Milestone",
+  //     description:
+  //       "Celebrated reaching 100 active members and expanded to include students from neighboring universities.",
+  //   },
+  //   {
+  //     year: "2023",
+  //     title: "First Annual Tech Conference",
+  //     description:
+  //       "Organized our first annual tech conference with 200+ attendees and speakers from major tech companies.",
+  //   },
+  //   {
+  //     year: "2024",
+  //     title: "Robotics Competition Win",
+  //     description:
+  //       "Our robotics team won the National University Robotics Challenge with their autonomous navigation robot.",
+  //   },
+  //   {
+  //     year: "2024",
+  //     title: "New Club Space",
+  //     description:
+  //       "Secured a dedicated club space in the Technology Building with workstations, meeting areas, and a small hardware lab.",
+  //   },
+  //   {
+  //     year: "2025",
+  //     title: "200+ Members",
+  //     description:
+  //       "Currently at over 200 active members with four specialized divisions: Web Development, Cybersecurity, Game Development, and Robotics.",
+  //   },
+  // ]
 
   const values = [
     {
@@ -398,7 +350,7 @@ export default function AboutPage() {
 
               <TabsContent value="leadership">
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {teamMembers.slice(0, 6).map((member, i) => (
+                  {team.slice(0, 6).map((member, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, y: 20 }}
@@ -483,7 +435,7 @@ export default function AboutPage() {
 
               <TabsContent value="all">
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-                  {teamMembers.map((member, i) => (
+                  {team.map((member, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, y: 20 }}
