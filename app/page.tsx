@@ -334,10 +334,10 @@ export default function ClubHomePage() {
               href="#"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Log in
+              {/* Log in */}
             </Link>
             <Button className="rounded-full">
-              <Link href={"https://discord.com/invite/VHbs3MrgMC"}>Join Club</Link>
+              <Link href={"/join"} >Join Club</Link>
               
               <ChevronRight className="ml-1 size-4" />
             </Button>
@@ -414,13 +414,18 @@ export default function ClubHomePage() {
                 robotics. Join us to learn, build, and grow together.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="rounded-full h-12 px-8 text-base">
-                  Join Our Community
-                  <ChevronRight className="ml-2 size-4" />
-                </Button>
-                <Button size="lg" variant="outline" className="rounded-full h-12 px-8 text-base">
-                  Explore Projects
-                </Button>
+                <Link href={"https://discord.com/invite/VHbs3MrgMC"} target="_blank">
+                  <Button size="lg" className="rounded-full h-12 px-8 text-base">
+                    Join Our Community
+                    <ChevronRight className="ml-2 size-4" />
+                  </Button>
+                </Link>
+                
+                <Link href={"/projects"}>
+                  <Button size="lg" variant="outline" className="rounded-full h-12 px-8 text-base">
+                    Explore Projects
+                  </Button>
+                </Link>
               </div>
               <div className="flex items-center justify-center gap-4 mt-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
@@ -1090,7 +1095,8 @@ export default function ClubHomePage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 font-bold">
                 <div className="size-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
-                  TC
+                  <Image src={"/tech.jpg"} alt={""} width={100} height={100}></Image>
+                  
                 </div>
                 <span>TechClub</span>
               </div>

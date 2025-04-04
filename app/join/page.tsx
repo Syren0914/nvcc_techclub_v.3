@@ -64,7 +64,7 @@ export default function JoinPage() {
     {
       question: "Who can join TechClub?",
       answer:
-        "TechClub is open to all students at the university, regardless of major or technical background. We welcome members of all skill levels, from beginners to advanced.",
+        "TechClub is open to all students at the college, regardless of major or technical background. We welcome members of all skill levels, from beginners to advanced.",
     },
     {
       question: "Is there a membership fee?",
@@ -241,7 +241,7 @@ export default function JoinPage() {
         </section>
 
         {/* Membership Levels Section */}
-        <section className="w-full py-20 bg-muted/30">
+        {/* <section className="w-full py-20 bg-muted/30">
           <div className="container px-4 md:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -302,7 +302,7 @@ export default function JoinPage() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Application Form Section */}
         <section className="w-full py-20">
@@ -346,8 +346,8 @@ export default function JoinPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" placeholder="john.doe@university.edu" />
-                      <p className="text-xs text-muted-foreground">Please use your university email if possible</p>
+                      <Input id="email" type="email" placeholder="john.doe@vccs.email.edu" />
+                      <p className="text-xs text-muted-foreground">Please use your college email if possible</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="major">Major/Field of Study</Label>

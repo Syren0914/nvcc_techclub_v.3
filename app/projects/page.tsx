@@ -294,7 +294,7 @@ export default function ProjectsPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="/creative.png"
                     width={800}
                     height={600}
                     alt="TechClub members working on projects"

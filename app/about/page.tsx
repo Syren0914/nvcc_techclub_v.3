@@ -36,7 +36,7 @@ export default function AboutPage() {
       name: "Erdene Batbayar",
       role: "Vice President , Treasurer",
       bio: "Full-stack developer specializing in React and Node.js applications. Sam joined the club in their sophomore year and has led several successful web development projects.",
-      image: "/placeholder.svg?height=400&width=400",
+      image: "/erdene.jpg",
       year: "Junior",
       contact: "sam.rodriguez@university.edu",
       specialties: ["React", "Node.js", "UI/UX Design"],
@@ -58,7 +58,7 @@ export default function AboutPage() {
       name: "Christian Galvez",
       role: "Former Treasurer",
       bio: "Game developer and UI/UX designer with a creative approach to problem-solving. Taylor has transformed the club's event program, increasing attendance by over 50%.",
-      image: "/placeholder.svg?height=400&width=400",
+      image: "/christian.jpg",
       year: "Sophomore",
       contact: "taylor.smith@university.edu",
       specialties: ["Game Development", "Event Planning", "Unity"],
@@ -69,7 +69,7 @@ export default function AboutPage() {
       name: "Deigo Fonseca",
       role: "Former Officer",
       bio: "Robotics specialist with multiple competition wins under their belt. Jordan oversees all technical projects and mentors new members in hardware and software development.",
-      image: "/placeholder.svg?height=400&width=400",
+      image: "/deigo.jpg",
       year: "Senior",
       contact: "jordan.patel@university.edu",
       specialties: ["Robotics", "Arduino", "C++"],
@@ -106,7 +106,7 @@ export default function AboutPage() {
     {
       year: "2021",
       title: "50 Members Milestone",
-      description: "Reached 50 active members from various departments across the university.",
+      description: "Reached 50 active members from various departments across the college.",
     },
     {
       year: "2021",
@@ -184,7 +184,7 @@ export default function AboutPage() {
   ]
 
   return (
-    <>
+    <div>
       <Navbar />
       <main className="flex-1">
         {/* Hero Section */}
@@ -210,12 +210,14 @@ export default function AboutPage() {
                     Meet Our Team
                     <ChevronRight className="ml-1 size-4" />
                   </Button>
-                  <Link href={"https://discord.gg/pwcdweEwjM"}>
-                  <Button variant="outline" className="rounded-full">
-                    Join TechClub
-                    
+                  
+                  <Button asChild size="lg" variant="secondary" className="rounded-full">
+                    <Link href="https://discord.gg/pwcdweEwjM">
+                      Join the TechClub
+                    </Link>
                   </Button>
-                  </Link>
+
+                  
                 </div>
               </motion.div>
               <motion.div
@@ -663,12 +665,17 @@ export default function AboutPage() {
                 In addition to our regular meetings, we also organize special events, hackathons, and field trips
                 throughout the year. Check our events page for the full schedule.
               </p>
-              <Button className="rounded-full" asChild>
-                <Link href="/events">
-                  View All Events
-                  <ChevronRight className="ml-1 size-4" />
-                </Link>
-              </Button>
+              
+                <Button className="rounded-full" asChild>
+                  <Link href="/events">
+                  
+                    View All Events
+                    
+                    <ChevronRight className="ml-1 size-4" />
+                    </Link>
+                  
+                </Button>
+              
             </div>
           </div>
         </section>
@@ -688,12 +695,12 @@ export default function AboutPage() {
                 Become a member today and get access to all our resources, events, and a community of tech enthusiasts.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href={"https://discord.gg/pwcdweEwjM"}>
-                <Button size="lg" variant="secondary" className="rounded-full">
+              <Button asChild size="lg" variant="secondary" className="rounded-full">
+                <Link href="https://discord.gg/pwcdweEwjM">
                   Join the Discord Community
-                  
-                </Button>
                 </Link>
+              </Button>
+
                 <Button
                   size="lg"
                   variant="outline"
@@ -707,7 +714,7 @@ export default function AboutPage() {
         </section>
       </main>
       <Footer />
-    </>
+    </div>
   )
 }
 

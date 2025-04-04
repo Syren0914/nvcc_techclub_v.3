@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Github, Twitter, Linkedin, Mail } from "lucide-react"
+import Image from "next/image"
 
 export default function Footer() {
   return (
@@ -9,7 +10,7 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="size-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-                TC
+                <Image src={"/tech.jpg"} alt={""} height={100} width={100}></Image>
               </div>
               <span className="font-bold text-xl">TechClub</span>
             </Link>
@@ -39,7 +40,7 @@ export default function Footer() {
                 <span className="sr-only">LinkedIn</span>
               </Link>
               <Link
-                href="mailto:contact@techclub.university.edu"
+                href="mailto:techclub@gmail.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Mail className="size-5" />
@@ -126,11 +127,11 @@ export default function Footer() {
             <h3 className="font-medium mb-3">Contact</h3>
             <ul className="space-y-2">
               <li className="text-muted-foreground">
-                Tech Building, Room 302
+                LC Building, Room 302E
                 <br />
-                University Campus
+                Loudoun Campus
                 <br />
-                City, State 12345
+                Sterling, VA  20164
               </li>
               <li>
                 <Link
@@ -142,7 +143,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="tel:+15551234567" className="text-muted-foreground hover:text-foreground transition-colors">
-                  (555) 123-4567
+                  (703) - 994-5970
                 </Link>
               </li>
             </ul>
