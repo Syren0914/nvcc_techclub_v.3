@@ -37,12 +37,34 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "next-themes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getTeamMembers, getUpcomingEvents, getFeaturedEvent, getProjectsByCategory } from "@/lib/database"
+import { useMembership } from "@/hooks/use-membership"
+import { TeamMember, Event, Project } from "@/lib/supabase"
+import { validateEmailDomain, getEmailDomainError } from "@/lib/auth"
 
 export default function ClubHomePage() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  
+  // Database state
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
+  const [featuredEvent, setFeaturedEvent] = useState<Event | null>(null)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  // Membership form state
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    major: '',
+    areas_of_interest: ''
+  })
+  
+  const { isSubmitting, submitStatus, errorMessage, submitApplication, resetStatus } = useMembership()
 
   useEffect(() => {
     setMounted(true)
@@ -149,83 +171,32 @@ export default function ClubHomePage() {
     },
   ]
 
-  const teamMembers = [
-    {
-      name: "Jun Ip",
-      role: "Club President",
-      bio: "Computer Science major with a passion for AI and machine learning.",
-      image: "/placeholder.svg?height=100&width=100",
-    },
-    {
-      name: "Erdene Batbayar",
-      role: "Vice President",
-      bio: "Full-stack developer specializing in React and Node.js applications.",
-      image: "/erdene.jpg",
-    },
-    {
-      name: "Estabon Gandarillas",
-      role: "Media Officer",
-      bio: "Computer Science major with a passion for VR and AR technologies.",
-      image: "/placeholder.svg?height=100&width=100",
-    },
-    {
-      name: "Deigo Foncesca",
-      role: "Former Officer",
-      bio: "Game developer with a creative approach to problem-solving.",
-      image: "/deigo.jpg",
-    },
-    {
-      name: "Christian Galvez",
-      role: "Former Treasurer",
-      bio: "Electrical Engineering student with a focus on IoT and embedded systems.",
-      image: "/christian.jpg",
-    },
-    {
-      name: "Hashem Anwari",
-      role: "Advisor",
-      bio: "Professor of Computer Science with expertise in computer engineering and data science.",
-      image: "/placeholder.svg?height=100&width=100",
-    },
-  ]
+  // Load data from database
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [members, events, featured, webProjects] = await Promise.all([
+          getTeamMembers(),
+          getUpcomingEvents(),
+          getFeaturedEvent(),
+          getProjectsByCategory('Web Development')
+        ])
+        
+        setTeamMembers(members)
+        setUpcomingEvents(events)
+        setFeaturedEvent(featured)
+        setProjects(webProjects)
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadData()
+  }, [])
 
-  const upcomingEvents = [
-    {
-      title: "Intro to Ethical Hacking",
-      date: "TBA",
-      time: "2:30 PM - 4:00 PM",
-      location: "Tech Building, Room 302",
-      description: "Learn the basics of ethical hacking and penetration testing in this hands-on workshop.",
-      type: "Workshop",
-      isOnline: false,
-    },
-    {
-      title: "Web Development Bootcamp",
-      date: "TBA",
-      time: "2:30 PM - 4:00 PM",
-      location: "Online (Zoom)",
-      description: "A beginner-friendly introduction to HTML, CSS, and JavaScript for web development.",
-      type: "Workshop",
-      isOnline: true,
-    },
-    {
-      title: "Data Center Field Trip",
-      date: "TBA",
-      time: "1:00 PM - 4:00 PM",
-      location: "City Data Center",
-      description: "Visit the local data center to see how large-scale computing infrastructure works.",
-      type: "Field Trip",
-      isOnline: false,
-    },
-    {
-      title: "Game Jam Weekend",
-      date: "TBA",
-      time: "Starts at 5:00 PM Friday",
-      location: "Innovation Hub",
-      description: "48-hour game development challenge. Form teams and create a game from scratch!",
-      type: "Competition",
-      isOnline: false,
-    },
-  ]
+
 
   const resources = [
     {
@@ -331,10 +302,10 @@ export default function ClubHomePage() {
               <span className="sr-only">Toggle theme</span>
             </Button>
             <Link
-              href="#"
+              href="/login"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {/* Log in */}
+              Log in
             </Link>
             <Button className="rounded-full">
               <Link href={"/join"} >Join Club</Link>
@@ -377,7 +348,7 @@ export default function ClubHomePage() {
                 Community
               </Link>
               <div className="flex flex-col gap-2 pt-2 border-t">
-                <Link href="#" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/login" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                   Log in
                 </Link>
                 <Button className="rounded-full">
@@ -467,23 +438,25 @@ export default function ClubHomePage() {
         </section>
 
         {/* Featured Event Banner */}
-        <section className="w-full py-8 bg-primary text-primary-foreground">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Calendar className="size-8 md:size-10" />
-                <div>
-                  <h2 className="text-xl md:text-2xl font-bold">Upcoming: Blender Workshop </h2>
-                  <p className="text-primary-foreground/80">April 03, 2025 • LC 302E</p>
+        {featuredEvent && (
+          <section className="w-full py-8 bg-primary text-primary-foreground">
+            <div className="container px-4 md:px-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <Calendar className="size-8 md:size-10" />
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold">Upcoming: {featuredEvent.title}</h2>
+                    <p className="text-primary-foreground/80">{featuredEvent.date} • {featuredEvent.location}</p>
+                  </div>
                 </div>
+                <Button variant="secondary" className="rounded-full whitespace-nowrap">
+                  Register Now
+                  <ChevronRight className="ml-1 size-4" />
+                </Button>
               </div>
-              <Button variant="secondary" className="rounded-full whitespace-nowrap">
-                Register Now
-                <ChevronRight className="ml-1 size-4" />
-              </Button>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* About Us Section */}
         <section id="about" className="w-full py-20 md:py-32">
@@ -724,8 +697,8 @@ export default function ClubHomePage() {
                   <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur transition-all hover:shadow-md">
                     <CardContent className="p-6 flex flex-col h-full">
                       <div className="flex justify-between items-start mb-4">
-                        <Badge variant={event.isOnline ? "outline" : "secondary"} className="rounded-full">
-                          {event.isOnline ? "Online" : "In Person"}
+                        <Badge variant={event.is_online ? "outline" : "secondary"} className="rounded-full">
+                          {event.is_online ? "Online" : "In Person"}
                         </Badge>
                         <Badge variant="outline" className="rounded-full">
                           {event.type}
@@ -1023,13 +996,27 @@ export default function ClubHomePage() {
                     <CardDescription className="text-white/80">Fill out this form to become a member</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <form className="space-y-4">
+                    <form className="space-y-4" onSubmit={(e) => {
+                      e.preventDefault()
+                      
+                      // Validate email domain
+                      if (!validateEmailDomain(formData.email)) {
+                        // This will be handled by the useMembership hook
+                        submitApplication(formData)
+                        return
+                      }
+                      
+                      submitApplication(formData)
+                    }}>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-white">First Name</label>
                           <input
                             className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50"
                             placeholder="John"
+                            value={formData.first_name}
+                            onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                            required
                           />
                         </div>
                         <div className="space-y-2">
@@ -1037,6 +1024,9 @@ export default function ClubHomePage() {
                           <input
                             className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50"
                             placeholder="Doe"
+                            value={formData.last_name}
+                            onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                            required
                           />
                         </div>
                       </div>
@@ -1044,42 +1034,70 @@ export default function ClubHomePage() {
                         <label className="text-sm font-medium text-white">Email</label>
                         <input
                           className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50"
-                          placeholder="john.doe@example.com"
+                          placeholder="your.name@email.vccs.edu"
                           type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          required
                         />
+                        <p className="text-xs text-white/70">
+                          Must be a valid @email.vccs.edu address
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-white">Major/Field of Study</label>
                         <input
                           className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50"
                           placeholder="Computer Science"
+                          value={formData.major}
+                          onChange={(e) => setFormData({...formData, major: e.target.value})}
+                          required
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-white">Areas of Interest</label>
-                        <select className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white">
+                        <select 
+                          className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white"
+                          value={formData.areas_of_interest}
+                          onChange={(e) => setFormData({...formData, areas_of_interest: e.target.value})}
+                          required
+                        >
                           <option value="" className="bg-background text-foreground">
                             Select an option
                           </option>
-                          <option value="web" className="bg-background text-foreground">
+                          <option value="Web Development" className="bg-background text-foreground">
                             Web Development
                           </option>
-                          <option value="security" className="bg-background text-foreground">
+                          <option value="Cybersecurity" className="bg-background text-foreground">
                             Cybersecurity
                           </option>
-                          <option value="game" className="bg-background text-foreground">
+                          <option value="Game Development" className="bg-background text-foreground">
                             Game Development
                           </option>
-                          <option value="robotics" className="bg-background text-foreground">
+                          <option value="Robotics" className="bg-background text-foreground">
                             Robotics
                           </option>
-                          <option value="multiple" className="bg-background text-foreground">
+                          <option value="Multiple Areas" className="bg-background text-foreground">
                             Multiple Areas
                           </option>
                         </select>
                       </div>
-                      <Button className="w-full rounded-full bg-black text-black  text-primary hover:bg-white hover:text-black">
-                        Submit Application
+                      {submitStatus === 'success' && (
+                        <div className="text-green-400 text-sm text-center">
+                          Application submitted successfully!
+                        </div>
+                      )}
+                      {submitStatus === 'error' && (
+                        <div className="text-red-400 text-sm text-center">
+                          {errorMessage}
+                        </div>
+                      )}
+                      <Button 
+                        type="submit"
+                        className="w-full rounded-full bg-black text-black text-primary hover:bg-white hover:text-black"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? 'Submitting...' : 'Submit Application'}
                       </Button>
                     </form>
                   </CardContent>
