@@ -28,60 +28,40 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('🔄 Form submitted, preventing default')
     setIsLoading(true)
     setError("")
 
-    console.log('📧 Email:', email)
-    console.log('🔑 Password length:', password.length)
-
     // Validate email domain
     if (!validateEmailDomain(email)) {
-      console.log('❌ Email domain validation failed')
       setError(getEmailDomainError())
       setIsLoading(false)
       return
     }
 
-    console.log('✅ Email domain validation passed')
-
     try {
-      console.log('🔄 Calling signIn function...')
-      console.log('🔗 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing')
-      console.log('🔑 Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing')
-      
       const data = await signIn(email, password)
-      console.log('📊 SignIn response:', data)
       
       if (data && data.user) {
-        console.log('✅ User authenticated:', data.user.id)
         // Check if user has 2FA enabled
-        console.log('🔄 Fetching user profile...')
         const profile = await getUserProfile(data.user.id)
-        console.log('📊 User profile:', profile)
         setUserProfile(profile)
 
         if (profile.two_factor_enabled) {
-          console.log('🔐 2FA enabled, showing 2FA step')
           setStep("2fa")
         } else {
           // No 2FA, redirect to dashboard
-          console.log('✅ No 2FA, redirecting to dashboard...')
           toast({
             title: "Welcome back!",
             description: "Successfully logged in to TechClub.",
           })
-          console.log('🔄 Using router.push for redirect...')
-          // Use router.push since middleware is disabled
-          router.push("/dashboard")
-          console.log('✅ Redirect initiated')
+          
+          // Force a page reload to ensure session is properly set
+          window.location.href = "/dashboard"
         }
       } else {
-        console.error('❌ No user data returned')
         throw new Error('Authentication failed - no user data returned')
       }
     } catch (error: any) {
-      console.error('🚨 Login error:', error)
       setError(error.message)
       toast({
         title: "Login failed",
@@ -89,7 +69,6 @@ export default function LoginPage() {
         variant: "destructive",
       })
     } finally {
-      console.log('🏁 Login process finished')
       setIsLoading(false)
     }
   }
@@ -263,33 +242,9 @@ export default function LoginPage() {
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
-                    
-                    {/* Test button */}
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full mt-2"
-                      onClick={() => {
-                        console.log('🧪 Test button clicked')
-                        console.log('📧 Email:', email)
-                        console.log('🔑 Password:', password)
-                        console.log('🔗 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing')
-                        console.log('🔑 Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing')
-                      }}
-                    >
-                      Test: Check Form Data & Config
-                    </Button>
                   </form>
                   
-                  {/* Test links - you can remove these later */}
-                  <div className="mt-4 text-center space-y-2">
-                    <Link href="/dashboard" className="text-sm text-blue-500 hover:underline block">
-                      Test: Go to Dashboard Directly
-                    </Link>
-                    <Link href="/dashboard-test" className="text-sm text-green-500 hover:underline block">
-                      Test: Go to Simple Dashboard
-                    </Link>
-                  </div>
+
                 </CardContent>
               </Card>
             </motion.div>

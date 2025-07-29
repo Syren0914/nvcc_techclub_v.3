@@ -2,12 +2,6 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // TEMPORARILY DISABLE MIDDLEWARE FOR TESTING
-  console.log('🔄 Middleware: Request to', request.nextUrl.pathname, '- ALLOWING ALL REQUESTS')
-  return NextResponse.next()
-  
-  // Original middleware code commented out
-  /*
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -33,27 +27,35 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired - required for Server Components
-  const { data: { user } } = await supabase.auth.getUser()
+  // Get session instead of just user
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
 
-  // Protected routes - only redirect if user is not authenticated
+  console.log('🔄 Middleware: Request to', request.nextUrl.pathname)
+  console.log('👤 User authenticated:', !!user)
+  console.log('🔗 Supabase URL configured:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('🔑 Supabase Key configured:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  console.log('🍪 Session exists:', !!session)
+
+  // Only protect dashboard routes - don't interfere with login/register
   const protectedRoutes = ['/dashboard', '/profile', '/settings']
   const isProtectedRoute = protectedRoutes.some(route => 
     request.nextUrl.pathname.startsWith(route)
   )
 
+  // Temporarily disable protection to test login flow
   if (isProtectedRoute && !user) {
     console.log('🔄 Middleware: Unauthenticated user trying to access', request.nextUrl.pathname)
-    const redirectUrl = new URL('/login', request.url)
-    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+    console.log('⚠️ TEMPORARILY ALLOWING ACCESS FOR TESTING')
+    // const redirectUrl = new URL('/login', request.url)
+    // redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
+    // return NextResponse.redirect(redirectUrl)
   }
 
-  // Don't redirect authenticated users away from auth pages - let client handle it
-  // This allows the login page to handle its own redirect logic
+  // Don't redirect authenticated users away from auth pages
+  // Let the client-side handle login redirects
 
   return supabaseResponse
-  */
 }
 
 export const config = {
