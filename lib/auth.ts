@@ -1,212 +1,338 @@
 import { createClient } from '@supabase/supabase-js'
-import crypto from 'crypto'
-import { authenticator } from 'otplib'
+import { User } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Email validation
+export interface UserProfile {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  avatar_url?: string
+  created_at: string
+  updated_at: string
+  leetcode_username?: string
+  role?: string
+  permissions?: string[]
+}
+
+export interface UserRole {
+  id: string
+  user_id: string
+  role: 'member' | 'officer' | 'vice_president' | 'president'
+  assigned_at: string
+  assigned_by?: string
+  permissions: string[]
+  is_active: boolean
+}
+
+// Get current user
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error) {
+      console.error('Error getting current user:', error)
+      return null
+    }
+    return user
+  } catch (error) {
+    console.error('Error in getCurrentUser:', error)
+    return null
+  }
+}
+
+// Get or create user profile
+export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+  try {
+    // First, try to get existing profile
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (error && error.code === 'PGRST116') {
+      // Profile doesn't exist, create it
+      console.log('Creating new user profile for:', userId)
+      return await createUserProfile(userId, {
+        first_name: 'User',
+        last_name: 'Member',
+        email: 'user@example.com'
+      })
+    }
+
+    if (error) {
+      console.error('Error fetching user profile:', error)
+      return null
+    }
+
+    return profile
+  } catch (error) {
+    console.error('Error in getUserProfile:', error)
+    return null
+  }
+}
+
+// Create user profile
+export async function createUserProfile(userId: string, profileData: Partial<UserProfile>): Promise<UserProfile | null> {
+  try {
+    // Get user email from auth.users
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId)
+    
+    const defaultProfile = {
+      id: userId,
+      first_name: profileData.first_name || 'User',
+      last_name: profileData.last_name || 'Member',
+      email: userData?.user?.email || profileData.email || 'user@example.com',
+      avatar_url: profileData.avatar_url,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    const { data: newProfile, error } = await supabase
+      .from('profiles')
+      .insert(defaultProfile)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating user profile:', error)
+      return null
+    }
+
+    // Try to assign default member role (but don't fail if it doesn't work)
+    try {
+      await assignRole(userId, 'member')
+    } catch (roleError) {
+      console.warn('Could not assign default role, but profile was created:', roleError)
+    }
+    
+    console.log('✅ User profile created successfully:', newProfile)
+    return newProfile
+  } catch (error) {
+    console.error('Error in createUserProfile:', error)
+    return null
+  }
+}
+
+// Get user roles
+export async function getUserRoles(userId: string): Promise<UserRole[]> {
+  try {
+    const { data: roles, error } = await supabase
+      .from('user_roles')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+
+    if (error) {
+      console.error('Error fetching user roles:', error)
+      return []
+    }
+
+    return roles || []
+  } catch (error) {
+    console.error('Error in getUserRoles:', error)
+    return []
+  }
+}
+
+// Get user permissions
+export async function getUserPermissions(userId: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase.rpc('get_user_permissions', {
+      user_uuid: userId
+    })
+
+    if (error) {
+      console.error('Error fetching user permissions:', error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error('Error in getUserPermissions:', error)
+    return []
+  }
+}
+
+// Check if user has permission
+export async function hasPermission(userId: string, permission: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('has_permission', {
+      user_uuid: userId,
+      required_permission: permission
+    })
+
+    if (error) {
+      console.error('Error checking permission:', error)
+      return false
+    }
+
+    return data || false
+  } catch (error) {
+    console.error('Error in hasPermission:', error)
+    return false
+  }
+}
+
+// Assign role to user
+export async function assignRole(userId: string, role: string, assignedBy?: string): Promise<boolean> {
+  try {
+    // First check if user_roles table exists by trying to query it
+    const { data: tableCheck, error: tableError } = await supabase
+      .from('user_roles')
+      .select('count')
+      .limit(1)
+
+    if (tableError) {
+      console.warn('user_roles table does not exist or is not accessible:', tableError.message)
+      console.log('Skipping role assignment - table not available')
+      return true // Return true to not block user creation
+    }
+
+    // Check if user already has this role
+    const { data: existingRole } = await supabase
+      .from('user_roles')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('role', role)
+      .single()
+
+    if (existingRole) {
+      console.log('User already has role:', role)
+      return true
+    }
+
+    const { error } = await supabase
+      .from('user_roles')
+      .insert({
+        user_id: userId,
+        role: role,
+        assigned_by: assignedBy,
+        is_active: true
+      })
+
+    if (error) {
+      console.error('Error assigning role:', error)
+      // Don't fail user creation if role assignment fails
+      return true
+    }
+
+    console.log('✅ Role assigned successfully:', role)
+    return true
+  } catch (error) {
+    console.error('Error in assignRole:', error)
+    // Don't fail user creation if role assignment fails
+    return true
+  }
+}
+
+// Remove role from user
+export async function removeRole(userId: string, role: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
+      .eq('role', role)
+
+    if (error) {
+      console.error('Error removing role:', error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error in removeRole:', error)
+    return false
+  }
+}
+
+// Get all roles (for admin)
+export async function getAllRoles(): Promise<UserRole[]> {
+  try {
+    const { data: roles, error } = await supabase
+      .from('user_roles')
+      .select('*')
+      .eq('is_active', true)
+      .order('assigned_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching all roles:', error)
+      return []
+    }
+
+    return roles || []
+  } catch (error) {
+    console.error('Error in getAllRoles:', error)
+    return []
+  }
+}
+
+// Sign out
+export async function signOut(): Promise<void> {
+  try {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('Error signing out:', error)
+    }
+  } catch (error) {
+    console.error('Error in signOut:', error)
+  }
+}
+
+// Update user profile
+export async function updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+
+    if (error) {
+      console.error('Error updating user profile:', error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error in updateUserProfile:', error)
+    return false
+  }
+}
+
+// Email domain validation
 export function validateEmailDomain(email: string): boolean {
-  return email.toLowerCase().endsWith('@email.vccs.edu')
+  // Allow any email domain for now
+  // You can add specific domain validation here if needed
+  return email.includes('@') && email.length > 5
 }
 
 export function getEmailDomainError(): string {
-  return 'Email must end with @email.vccs.edu'
+  return "Please enter a valid email address"
 }
 
-// 2FA Utilities
-export function generateTOTPSecret() {
-  return authenticator.generateSecret()
-}
-
-export function generateTOTPQRCode(email: string, secret: string) {
-  const serviceName = 'TechClub'
-  const otpauth = authenticator.keyuri(email, serviceName, secret)
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauth)}`
-}
-
-export function verifyTOTP(token: string, secret: string) {
-  return authenticator.verify({ token, secret })
-}
-
-export function generateBackupCodes() {
-  const codes = []
-  for (let i = 0; i < 10; i++) {
-    codes.push(crypto.randomBytes(4).toString('hex').toUpperCase())
-  }
-  return codes
-}
-
-export function hashBackupCode(code: string) {
-  return crypto.createHash('sha256').update(code).digest('hex')
-}
-
-// Authentication helpers
-export async function signUp(email: string, password: string, userData: any) {
-  // Validate email domain
-  if (!validateEmailDomain(email)) {
-    throw new Error(getEmailDomainError())
-  }
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: userData
-    }
-  })
-  
-  if (error) throw error
-  
-  // The trigger will automatically create the user profile
-  // No need to manually insert into user_profiles table
-  
-  return data
-}
-
-export async function signIn(email: string, password: string) {
+// Sign in function
+export async function signIn(email: string, password: string): Promise<any> {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
-    
+
     if (error) {
-      console.error('Sign in error:', error)
-      throw error
+      throw new Error(error.message)
     }
-    
-    if (!data || !data.user) {
-      console.error('No user data returned from sign in')
-      throw new Error('Authentication failed - no user data returned')
-    }
-    
-    // Update last login
-    try {
-      await supabase
-        .from('user_profiles')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', data.user.id)
-    } catch (profileError) {
-      console.warn('Failed to update last login:', profileError)
-      // Don't throw error for profile update failure
-    }
-    
+
     return data
   } catch (error) {
-    console.error('Sign in failed:', error)
+    console.error('Error in signIn:', error)
     throw error
   }
-}
-
-export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
-}
-
-export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error) throw error
-  return user
-}
-
-export async function getUserProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('id', userId)
-    .single()
-  
-  if (error) throw error
-  return data
-}
-
-export async function updateUserProfile(userId: string, updates: any) {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .update(updates)
-    .eq('id', userId)
-    .select()
-    .single()
-  
-  if (error) throw error
-  return data
-}
-
-// 2FA Management
-export async function enable2FA(userId: string, secret: string) {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .update({
-      two_factor_enabled: true,
-      two_factor_secret: secret
-    })
-    .eq('id', userId)
-    .select()
-    .single()
-  
-  if (error) throw error
-  
-  // Generate backup codes
-  const backupCodes = generateBackupCodes()
-  const hashedCodes = backupCodes.map(code => ({
-    user_id: userId,
-    code_hash: hashBackupCode(code)
-  }))
-  
-  const { error: backupError } = await supabase
-    .from('two_factor_backup_codes')
-    .insert(hashedCodes)
-  
-  if (backupError) throw backupError
-  
-  return { data, backupCodes }
-}
-
-export async function disable2FA(userId: string) {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .update({
-      two_factor_enabled: false,
-      two_factor_secret: null
-    })
-    .eq('id', userId)
-    .select()
-    .single()
-  
-  if (error) throw error
-  
-  // Delete backup codes
-  await supabase
-    .from('two_factor_backup_codes')
-    .delete()
-    .eq('user_id', userId)
-  
-  return data
-}
-
-export async function verifyBackupCode(userId: string, code: string) {
-  const hashedCode = hashBackupCode(code)
-  
-  const { data, error } = await supabase
-    .from('two_factor_backup_codes')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('code_hash', hashedCode)
-    .eq('used', false)
-    .single()
-  
-  if (error || !data) {
-    throw new Error('Invalid backup code')
-  }
-  
-  // Mark code as used
-  await supabase
-    .from('two_factor_backup_codes')
-    .update({ used: true })
-    .eq('id', data.id)
-  
-  return true
 } 

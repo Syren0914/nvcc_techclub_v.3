@@ -302,13 +302,13 @@ export default function ClubHomePage() {
               <span className="sr-only">Toggle theme</span>
             </Button>
             <Link
-              href="/login"
+              href=""
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Log in
+              
             </Link>
             <Button className="rounded-full">
-              <Link href={"/join"} >Join Club</Link>
+              <Link href={"/login"} >Join Now</Link>
               
               <ChevronRight className="ml-1 size-4" />
             </Button>
@@ -385,7 +385,7 @@ export default function ClubHomePage() {
                 robotics. Join us to learn, build, and grow together.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href={"https://discord.com/invite/VHbs3MrgMC"} target="_blank">
+                <Link href={"/login"}>
                   <Button size="lg" className="rounded-full h-12 px-8 text-base">
                     Join Our Community
                     <ChevronRight className="ml-2 size-4" />
