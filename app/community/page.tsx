@@ -22,20 +22,36 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
+import Header from "@/components/Header"
 
 export default function CommunityPage() {
   const [mounted, setMounted] = useState(false)
+  const [databaseStatus, setDatabaseStatus] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
+    checkDatabaseStatus()
   }, [])
+
+  const checkDatabaseStatus = async () => {
+    try {
+      const response = await fetch('/api/database-test')
+      const result = await response.json()
+      setDatabaseStatus(result.data)
+    } catch (error) {
+      console.error('Database status check failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const communityPlatforms = [
     {
       name: "Discord Server",
       description: "Our primary communication platform for real-time chat, announcements, and collaboration.",
       icon: <MessageSquare className="size-6" />,
-      link: "https://discord.gg/techclub",
+      link: "https://discord.gg/pwcdweEwjM",
       buttonText: "Join Discord",
       members: 215,
       featured: true,
@@ -236,8 +252,32 @@ export default function CommunityPage() {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <main className="flex-1">
+        {/* Database Status Indicator */}
+        {databaseStatus && (
+          <div className="container px-4 py-4">
+            <div className="p-4 border rounded-lg bg-background">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${databaseStatus.status === 'healthy' ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className="text-sm font-medium">
+                    Database Status: {databaseStatus.status === 'healthy' ? 'Connected' : 'Issues Detected'}
+                  </span>
+                </div>
+                <Button variant="outline" size="sm" onClick={checkDatabaseStatus}>
+                  Refresh
+                </Button>
+              </div>
+              {databaseStatus.status !== 'healthy' && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Some features may not work properly. Check the database setup guide for troubleshooting.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        
         {/* Hero Section */}
         <section className="w-full py-20 md:py-28 overflow-hidden bg-muted/30">
           <div className="container px-4 md:px-6">

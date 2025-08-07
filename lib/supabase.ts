@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Missing environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required'
+  )
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -12,6 +18,11 @@ export interface TeamMember {
   role: string
   bio: string
   image: string
+  year: string
+  contact: string
+  specialties: string[]
+  github: string
+  linkedin: string
   created_at: string
 }
 
@@ -33,6 +44,13 @@ export interface Project {
   description: string
   link: string
   category: string
+  image?: string
+  status?: string
+  tags?: string[]
+  featured?: boolean
+  github?: string
+  demo?: string
+  members?: number
   created_at: string
 }
 
@@ -43,6 +61,13 @@ export interface Resource {
   link: string
   category: string
   icon: string
+  image?: string
+  type?: string
+  level?: string
+  featured?: boolean
+  tags?: string[]
+  author?: string
+  dateUpdated?: string
   created_at: string
 }
 

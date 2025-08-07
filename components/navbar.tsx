@@ -1,50 +1,52 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
+import { Code, Menu, X, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useMobile } from "@/hooks/use-mobile"
-import Image from "next/image"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const isMobile = useMobile()
   const pathname = usePathname()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, signOut, isLoading } = useAuth()
 
-  // Close mobile menu when path changes
-  useEffect(() => {
-    setIsMenuOpen(false)
-  }, [pathname])
-
-  const navItems = [
+  const navigation = [
     { name: "Home", href: "/" },
     { name: "About", href: "/about" },
-    { name: "Projects", href: "/projects" },
     { name: "Events", href: "/events" },
+    { name: "Projects", href: "/projects" },
     { name: "Resources", href: "/resources" },
+    { name: "Team", href: "/team" },
     { name: "Community", href: "/community" },
   ]
 
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="size-16 rounded-full  flex items-center justify-center text-primary-foreground font-bold">
-              <Image src="/techclub.png" width={200} height={200} alt=""></Image>
-            </div>
-            <span className="font-bold text-xl hidden sm:inline-block">TechClub</span>
-          </Link>
-        </div>
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <div className="container flex h-16 items-center justify-between px-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="size-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
+            <Code className="size-4" />
+          </div>
+          <span className="font-bold text-lg">TechClub</span>
+        </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
+        <div className="hidden md:flex items-center gap-6">
+          {navigation.map((item) => (
             <Link
-              key={item.href}
+              key={item.name}
               href={item.href}
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 pathname === item.href ? "text-primary" : "text-muted-foreground"
@@ -53,43 +55,97 @@ export default function Navbar() {
               {item.name}
             </Link>
           ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button asChild className="hidden md:flex rounded-full">
-            <Link href="/join">Join Now</Link>
-          </Button>
-
-          {/* Mobile Menu Button */}
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </Button>
         </div>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-4">
+          <ThemeToggle />
+          
+          {!isLoading && user ? (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/applications">
+                  <User className="size-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" onClick={handleSignOut}>
+                <LogOut className="size-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/login">Sign In</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/register">Join Us</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+        </Button>
       </div>
 
       {/* Mobile Navigation */}
-      {isMenuOpen && isMobile && (
-        <div className="md:hidden border-t">
-          <nav className="container py-4 flex flex-col gap-2">
-            {navItems.map((item) => (
+      {isMenuOpen && (
+        <div className="md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container px-4 py-4 space-y-4">
+            {navigation.map((item) => (
               <Link
-                key={item.href}
+                key={item.name}
                 href={item.href}
-                className={`py-2 text-sm font-medium transition-colors hover:text-primary ${
+                className={`block text-sm font-medium transition-colors hover:text-primary ${
                   pathname === item.href ? "text-primary" : "text-muted-foreground"
                 }`}
+                onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            <Button asChild className="mt-2 rounded-full">
-              <Link href="/join">Join Now</Link>
-            </Button>
-          </nav>
+            
+            <div className="pt-4 border-t">
+              {!isLoading && user ? (
+                <div className="space-y-2">
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <Link href="/admin/applications" onClick={() => setIsMenuOpen(false)}>
+                      <User className="size-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={handleSignOut} className="w-full">
+                    <LogOut className="size-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                      Sign In
+                    </Link>
+                  </Button>
+                  <Button asChild size="sm" className="w-full">
+                    <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                      Join Us
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
-    </header>
+    </nav>
   )
 }
 

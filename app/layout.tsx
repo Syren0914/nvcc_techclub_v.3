@@ -1,17 +1,15 @@
-import type React from "react"
-import "@/styles/globals.css"
-import { Inter } from "next/font/google"
 import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Analytics } from "@vercel/analytics/react"
+import Navbar from "@/components/navbar"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TechClub -NVCC Learn, Build, Connect",
-  description:
-    "Join our community of tech enthusiasts exploring web development, cybersecurity, game development, and robotics.",
-    
+  title: "NVCC TechClub",
+  description: "Northern Virginia Community College Technology Club",
 }
 
 export default function RootLayout({
@@ -21,19 +19,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
-          <Analytics />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="min-h-screen bg-background">
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+          </div>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
   )
 }
-
-
-
-import './globals.css'

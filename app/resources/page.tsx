@@ -28,6 +28,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
+import Header from "@/components/Header"
+import { getAllResources } from "@/lib/database"
+import { Resource } from "@/lib/supabase"
 
 export default function ResourcesPage() {
   const [mounted, setMounted] = useState(false)
@@ -35,10 +38,24 @@ export default function ResourcesPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedLevels, setSelectedLevels] = useState<string[]>([])
+  const [resources, setResources] = useState<Resource[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
+    loadResources()
   }, [])
+
+  const loadResources = async () => {
+    try {
+      const resourcesData = await getAllResources()
+      setResources(resourcesData)
+    } catch (error) {
+      console.error('Error loading resources:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const categories = [
     "Web Development",
@@ -52,177 +69,6 @@ export default function ResourcesPage() {
   ]
 
   const levels = ["Beginner", "Intermediate", "Advanced", "All Levels"]
-
-  const resources = [
-    {
-      title: "Ethical Hacking Guide",
-      description:
-        "A comprehensive guide to ethical hacking methodologies and tools. Covers reconnaissance, scanning, exploitation, and reporting.",
-      category: "Cybersecurity",
-      level: "Intermediate",
-      type: "Guide",
-      image: "/ethi.png",
-      link: "/resources/ethical-hacking",
-      featured: true,
-      tags: ["Penetration Testing", "Security Tools", "Network Security"],
-      author: "Jamie Lee",
-      dateUpdated: "April 15, 2025",
-    },
-    {
-      title: "Reverse Engineering Basics",
-      description:
-        "Learn how to analyze and understand compiled programs. Includes tutorials on disassemblers, debuggers, and binary analysis techniques.",
-      category: "Cybersecurity",
-      level: "Advanced",
-      type: "Tutorial",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/reverse-engineering",
-      featured: false,
-      tags: ["Assembly", "Debugging", "Binary Analysis"],
-      author: "Alex Johnson",
-      dateUpdated: "March 28, 2025",
-    },
-    {
-      title: "Full-Stack Development Tutorial",
-      description:
-        "Step-by-step guide to building a complete web application with React, Node.js, and MongoDB. Covers frontend, backend, and database integration.",
-      category: "Web Development",
-      level: "Intermediate",
-      type: "Tutorial Series",
-      image: "/fullstack.avif",
-      link: "/resources/fullstack-tutorial",
-      featured: true,
-      tags: ["React", "Node.js", "MongoDB", "REST API"],
-      author: "Free Code Camp",
-      dateUpdated: "April 10, 2025",
-    },
-    {
-      title: "API Design Best Practices",
-      description:
-        "Learn how to design robust and scalable APIs. Covers RESTful principles, authentication, error handling, and documentation.",
-      category: "Web Development",
-      level: "Intermediate",
-      type: "Guide",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/api-design",
-      featured: false,
-      tags: ["REST", "API Design", "Documentation"],
-      author: "Morgan Chen",
-      dateUpdated: "March 15, 2025",
-    },
-    {
-      title: "LaTeX for Tech Resumes",
-      description:
-        "Create professional resumes using LaTeX templates. Includes templates, formatting tips, and examples specifically for tech roles.",
-      category: "Career Development",
-      level: "Beginner",
-      type: "Template",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/latex-resumes",
-      featured: true,
-      tags: ["LaTeX", "Resume", "Job Search"],
-      author: "Riley Kim",
-      dateUpdated: "April 5, 2025",
-    },
-    {
-      title: "Technical Interview Prep",
-      description:
-        "Practice problems and strategies for technical interviews. Includes algorithm challenges, system design questions, and behavioral interview tips.",
-      category: "Career Development",
-      level: "All Levels",
-      type: "Practice Problems",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/interview-prep",
-      featured: false,
-      tags: ["Algorithms", "System Design", "Interview Skills"],
-      author: "Jordan Patel",
-      dateUpdated: "April 18, 2025",
-    },
-    {
-      title: "Unity Game Development Fundamentals",
-      description:
-        "Learn the basics of game development with Unity. Covers the Unity interface, C# scripting, physics, animation, and building your first game.",
-      category: "Game Development",
-      level: "Beginner",
-      type: "Tutorial Series",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/unity-fundamentals",
-      featured: false,
-      tags: ["Unity", "C#", "Game Design"],
-      author: "Taylor Smith",
-      dateUpdated: "March 20, 2025",
-    },
-    {
-      title: "Arduino Robotics Projects",
-      description:
-        "Step-by-step tutorials for building various robots using Arduino. Includes line followers, obstacle avoiders, and arm manipulators.",
-      category: "Robotics",
-      level: "Intermediate",
-      type: "Project Tutorials",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/arduino-robotics",
-      featured: false,
-      tags: ["Arduino", "Electronics", "Sensors"],
-      author: "Jordan Patel",
-      dateUpdated: "April 2, 2025",
-    },
-    {
-      title: "Introduction to Machine Learning",
-      description:
-        "A beginner-friendly introduction to machine learning concepts and implementations. Covers supervised and unsupervised learning with Python.",
-      category: "AI/ML",
-      level: "Beginner",
-      type: "Course",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/intro-ml",
-      featured: false,
-      tags: ["Python", "Machine Learning", "Data Science"],
-      author: "Alex Johnson",
-      dateUpdated: "March 10, 2025",
-    },
-    {
-      title: "Docker and Kubernetes Essentials",
-      description:
-        "Learn how to containerize applications with Docker and orchestrate them with Kubernetes. Includes practical examples and deployment strategies.",
-      category: "DevOps",
-      level: "Intermediate",
-      type: "Guide",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/docker-kubernetes",
-      featured: false,
-      tags: ["Docker", "Kubernetes", "Containers"],
-      author: "Casey Wong",
-      dateUpdated: "April 8, 2025",
-    },
-    {
-      title: "Python Data Structures and Algorithms",
-      description:
-        "Comprehensive guide to implementing and using data structures and algorithms in Python. Includes complexity analysis and optimization techniques.",
-      category: "Programming Languages",
-      level: "Intermediate",
-      type: "Reference",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/python-dsa",
-      featured: false,
-      tags: ["Python", "Data Structures", "Algorithms"],
-      author: "Morgan Chen",
-      dateUpdated: "March 25, 2025",
-    },
-    {
-      title: "Web Accessibility Guidelines",
-      description:
-        "Learn how to make your web applications accessible to all users. Covers WCAG standards, semantic HTML, ARIA attributes, and testing tools.",
-      category: "Web Development",
-      level: "All Levels",
-      type: "Guide",
-      image: "/placeholder.svg?height=300&width=500",
-      link: "/resources/web-accessibility",
-      featured: false,
-      tags: ["Accessibility", "HTML", "ARIA"],
-      author: "Sam Rodriguez",
-      dateUpdated: "April 12, 2025",
-    },
-  ]
 
   // Filter resources based on search query and filters
   const filteredResources = resources.filter((resource) => {
@@ -251,7 +97,7 @@ export default function ResourcesPage() {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-20 md:py-28 overflow-hidden bg-muted/30">

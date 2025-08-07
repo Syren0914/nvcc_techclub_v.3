@@ -28,6 +28,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
+import Header from "@/components/Header"
+import { getAllEvents } from "@/lib/database"
+import { Event } from "@/lib/supabase"
 
 export default function EventsPage() {
   const [mounted, setMounted] = useState(false)
@@ -35,10 +38,24 @@ export default function EventsPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedLocation, setSelectedLocation] = useState<string>("")
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
+    loadEvents()
   }, [])
+
+  const loadEvents = async () => {
+    try {
+      const eventsData = await getAllEvents()
+      setEvents(eventsData)
+    } catch (error) {
+      console.error('Error loading events:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const eventTypes = ["Workshop", "Hackathon", "Meeting", "Field Trip", "Competition", "Social", "Conference"]
 
@@ -237,7 +254,7 @@ export default function EventsPage() {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-20 md:py-28 overflow-hidden bg-muted/30">

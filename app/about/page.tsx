@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { Milestone, TeamMember } from "../types/team"
-import { fetchMilestones, fetchTeamMembers } from "../appwrite/api"
+import { fetchMilestones, fetchTeamMembers } from "@/lib/database"
 
 
   
@@ -30,11 +30,19 @@ export default function AboutPage() {
   }, [])
   useEffect(() => {
     const loadData = async () => {
-      const teamData = await fetchTeamMembers();
-      if (teamData) setTeam(teamData);
-  
-      const milestoneData = await fetchMilestones();
-      if (milestoneData) setMilestones(milestoneData);
+      try {
+        const teamData = await fetchTeamMembers();
+        if (teamData && teamData.length > 0) {
+          setTeam(teamData);
+        }
+    
+        const milestoneData = await fetchMilestones();
+        if (milestoneData && milestoneData.length > 0) {
+          setMilestones(milestoneData);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
     loadData();
   }, []);
