@@ -58,9 +58,10 @@ export interface Resource {
   id: number
   title: string
   description: string
-  link: string
+  link?: string
+  url?: string
   category: string
-  icon: string
+  icon?: string
   image?: string
   type?: string
   level?: string

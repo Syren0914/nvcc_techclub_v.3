@@ -1,319 +1,112 @@
-import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    // Check if user is admin (this would be done via middleware in production)
+    // Get the authorization header
     const authHeader = request.headers.get('authorization')
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({
+        success: false,
+        error: 'No authorization header'
+      })
     }
 
-    const results = {
-      totalUsers: 0,
-      totalEvents: 0,
-      totalProjects: 0,
-      totalResources: 0,
-      totalTeamMembers: 0,
-      recentActivity: [],
-      databaseStatus: null
+    // Verify the JWT token with Supabase
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid token',
+        details: authError
+      })
     }
 
-    // Get total users
-    try {
-      const { count: userCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-      results.totalUsers = userCount || 0
-    } catch (error) {
-      console.error('Error counting users:', error)
+    // Check if user exists in our users table and has admin role
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (userError || !userData || userData.role !== 'admin') {
+      return NextResponse.json({
+        success: false,
+        error: 'Admin access required'
+      })
     }
 
-    // Get total events
-    try {
-      const { count: eventCount } = await supabase
+    // Fetch dashboard statistics
+    const [
+      { count: totalUsers },
+      { count: totalEvents },
+      { count: totalProjects },
+      { count: totalResources },
+      { count: totalTeamMembers },
+      { data: recentActivity }
+    ] = await Promise.all([
+      // Total users
+      supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true }),
+      
+      // Total events
+      supabase
         .from('events')
-        .select('*', { count: 'exact', head: true })
-      results.totalEvents = eventCount || 0
-    } catch (error) {
-      console.error('Error counting events:', error)
-    }
-
-    // Get total projects
-    try {
-      const { count: projectCount } = await supabase
+        .select('*', { count: 'exact', head: true }),
+      
+      // Total projects
+      supabase
         .from('projects')
-        .select('*', { count: 'exact', head: true })
-      results.totalProjects = projectCount || 0
-    } catch (error) {
-      console.error('Error counting projects:', error)
-    }
-
-    // Get total resources
-    try {
-      const { count: resourceCount } = await supabase
+        .select('*', { count: 'exact', head: true }),
+      
+      // Total resources
+      supabase
         .from('resources')
+        .select('*', { count: 'exact', head: true }),
+      
+      // Total team members (from membership applications with approved status)
+      supabase
+        .from('membership_applications')
         .select('*', { count: 'exact', head: true })
-      results.totalResources = resourceCount || 0
-    } catch (error) {
-      console.error('Error counting resources:', error)
-    }
-
-    // Get total team members
-    try {
-      const { count: teamCount } = await supabase
-        .from('team_members')
-        .select('*', { count: 'exact', head: true })
-      results.totalTeamMembers = teamCount || 0
-    } catch (error) {
-      console.error('Error counting team members:', error)
-    }
-
-    // Get recent activity (last 10 items from various tables)
-    try {
-      const recentActivity = []
+        .eq('status', 'approved'),
       
-      // Recent events
-      const { data: recentEvents } = await supabase
-        .from('events')
-        .select('title, created_at')
+      // Recent activity (latest applications and project applications)
+      supabase
+        .from('membership_applications')
+        .select('*')
         .order('created_at', { ascending: false })
-        .limit(3)
-      
-      if (recentEvents) {
-        recentEvents.forEach(event => {
-          recentActivity.push({
-            action: `Event "${event.title}" created`,
-            time: new Date(event.created_at).toLocaleDateString(),
-            type: 'Event'
-          })
-        })
-      }
+        .limit(5)
+    ])
 
-      // Recent projects
-      const { data: recentProjects } = await supabase
-        .from('projects')
-        .select('name, created_at')
-        .order('created_at', { ascending: false })
-        .limit(3)
-      
-      if (recentProjects) {
-        recentProjects.forEach(project => {
-          recentActivity.push({
-            action: `Project "${project.name}" created`,
-            time: new Date(project.created_at).toLocaleDateString(),
-            type: 'Project'
-          })
-        })
-      }
-
-      // Recent resources
-      const { data: recentResources } = await supabase
-        .from('resources')
-        .select('title, created_at')
-        .order('created_at', { ascending: false })
-        .limit(3)
-      
-      if (recentResources) {
-        recentResources.forEach(resource => {
-          recentActivity.push({
-            action: `Resource "${resource.title}" added`,
-            time: new Date(resource.created_at).toLocaleDateString(),
-            type: 'Resource'
-          })
-        })
-      }
-
-      results.recentActivity = recentActivity.slice(0, 10)
-    } catch (error) {
-      console.error('Error fetching recent activity:', error)
-    }
-
-    // Check database status
-    try {
-      const { data: dbStatus } = await supabase
-        .from('events')
-        .select('count', { count: 'exact', head: true })
-      
-      results.databaseStatus = {
-        status: dbStatus !== null ? 'healthy' : 'issues',
-        timestamp: new Date().toISOString()
-      }
-    } catch (error) {
-      results.databaseStatus = {
-        status: 'issues',
-        timestamp: new Date().toISOString()
-      }
-    }
+    // Format recent activity
+    const formattedActivity = recentActivity?.map((activity: any) => ({
+      action: `New membership application from ${activity.name}`,
+      time: new Date(activity.created_at).toLocaleDateString(),
+      type: 'membership'
+    })) || []
 
     return NextResponse.json({
       success: true,
-      data: results
+      data: {
+        totalUsers: totalUsers || 0,
+        totalEvents: totalEvents || 0,
+        totalProjects: totalProjects || 0,
+        totalResources: totalResources || 0,
+        totalTeamMembers: totalTeamMembers || 0,
+        recentActivity: formattedActivity,
+        databaseStatus: { status: 'healthy' }
+      }
     })
+
   } catch (error) {
-    console.error('Admin dashboard error:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to load admin dashboard data'
-    })
-  }
-} 
-import { supabase } from '@/lib/auth'
-
-export async function GET(request: Request) {
-  try {
-    // Check if user is admin (this would be done via middleware in production)
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const results = {
-      totalUsers: 0,
-      totalEvents: 0,
-      totalProjects: 0,
-      totalResources: 0,
-      totalTeamMembers: 0,
-      recentActivity: [],
-      databaseStatus: null
-    }
-
-    // Get total users
-    try {
-      const { count: userCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-      results.totalUsers = userCount || 0
-    } catch (error) {
-      console.error('Error counting users:', error)
-    }
-
-    // Get total events
-    try {
-      const { count: eventCount } = await supabase
-        .from('events')
-        .select('*', { count: 'exact', head: true })
-      results.totalEvents = eventCount || 0
-    } catch (error) {
-      console.error('Error counting events:', error)
-    }
-
-    // Get total projects
-    try {
-      const { count: projectCount } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-      results.totalProjects = projectCount || 0
-    } catch (error) {
-      console.error('Error counting projects:', error)
-    }
-
-    // Get total resources
-    try {
-      const { count: resourceCount } = await supabase
-        .from('resources')
-        .select('*', { count: 'exact', head: true })
-      results.totalResources = resourceCount || 0
-    } catch (error) {
-      console.error('Error counting resources:', error)
-    }
-
-    // Get total team members
-    try {
-      const { count: teamCount } = await supabase
-        .from('team_members')
-        .select('*', { count: 'exact', head: true })
-      results.totalTeamMembers = teamCount || 0
-    } catch (error) {
-      console.error('Error counting team members:', error)
-    }
-
-    // Get recent activity (last 10 items from various tables)
-    try {
-      const recentActivity = []
-      
-      // Recent events
-      const { data: recentEvents } = await supabase
-        .from('events')
-        .select('title, created_at')
-        .order('created_at', { ascending: false })
-        .limit(3)
-      
-      if (recentEvents) {
-        recentEvents.forEach(event => {
-          recentActivity.push({
-            action: `Event "${event.title}" created`,
-            time: new Date(event.created_at).toLocaleDateString(),
-            type: 'Event'
-          })
-        })
-      }
-
-      // Recent projects
-      const { data: recentProjects } = await supabase
-        .from('projects')
-        .select('name, created_at')
-        .order('created_at', { ascending: false })
-        .limit(3)
-      
-      if (recentProjects) {
-        recentProjects.forEach(project => {
-          recentActivity.push({
-            action: `Project "${project.name}" created`,
-            time: new Date(project.created_at).toLocaleDateString(),
-            type: 'Project'
-          })
-        })
-      }
-
-      // Recent resources
-      const { data: recentResources } = await supabase
-        .from('resources')
-        .select('title, created_at')
-        .order('created_at', { ascending: false })
-        .limit(3)
-      
-      if (recentResources) {
-        recentResources.forEach(resource => {
-          recentActivity.push({
-            action: `Resource "${resource.title}" added`,
-            time: new Date(resource.created_at).toLocaleDateString(),
-            type: 'Resource'
-          })
-        })
-      }
-
-      results.recentActivity = recentActivity.slice(0, 10)
-    } catch (error) {
-      console.error('Error fetching recent activity:', error)
-    }
-
-    // Check database status
-    try {
-      const { data: dbStatus } = await supabase
-        .from('events')
-        .select('count', { count: 'exact', head: true })
-      
-      results.databaseStatus = {
-        status: dbStatus !== null ? 'healthy' : 'issues',
-        timestamp: new Date().toISOString()
-      }
-    } catch (error) {
-      results.databaseStatus = {
-        status: 'issues',
-        timestamp: new Date().toISOString()
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: results
-    })
-  } catch (error) {
-    console.error('Admin dashboard error:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to load admin dashboard data'
-    })
+    console.error('Error in admin dashboard API:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 } 

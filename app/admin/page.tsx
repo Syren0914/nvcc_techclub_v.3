@@ -33,7 +33,6 @@ import AdminEventManager from "@/components/admin/admin-event-manager"
 import AdminProjectManager from "@/components/admin/admin-project-manager"
 import AdminResourceManager from "@/components/admin/admin-resource-manager"
 import { ProjectMembersManager } from "@/components/admin/project-members-manager"
-import { ProjectApplicationsManager } from "@/components/admin/project-applications-manager"
 
 interface AdminDashboardData {
   totalUsers: number
@@ -45,9 +44,19 @@ interface AdminDashboardData {
   databaseStatus: any
 }
 
+interface AdminDashboardPageState {
+  data: AdminDashboardData | null
+  loading: boolean
+  error: string | null
+  activeTab: string
+  userRole: string | null
+  isAdminUser: boolean
+}
+
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
   const [userRole, setUserRole] = useState<string | null>(null)
   const [isAdminUser, setIsAdminUser] = useState(false)
@@ -95,18 +104,34 @@ export default function AdminDashboardPage() {
 
   const loadAdminData = async () => {
     try {
-      // For now, set default data since we don't have the dashboard API
-      setData({
-        totalUsers: 0,
-        totalEvents: 0,
-        totalProjects: 0,
-        totalResources: 0,
-        totalTeamMembers: 0,
-        recentActivity: [],
-        databaseStatus: { status: 'healthy' }
+      setError(null)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        setError('Authentication required')
+        setLoading(false)
+        return
+      }
+
+      const response = await fetch('/api/admin/dashboard', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
       })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          setData(result.data)
+        } else {
+          setError('Failed to load dashboard data')
+        }
+      } else {
+        setError('Failed to load dashboard data')
+      }
     } catch (error) {
       console.error('Error loading admin data:', error)
+      setError('Error loading dashboard data')
     } finally {
       setLoading(false)
     }
@@ -159,8 +184,11 @@ export default function AdminDashboardPage() {
             <Button variant="outline" size="sm" onClick={() => router.push("/admin/applications")}>
               Member Applications
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setActiveTab("applications")}>
-              Project Applications
+            <Button variant="outline" size="sm" onClick={() => router.push("/admin/setup-test-data")}>
+              Setup Test Data
+            </Button>
+            <Button variant="outline" size="sm" onClick={loadAdminData}>
+              Refresh Data
             </Button>
           </div>
         </div>
@@ -237,6 +265,16 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
+          {/* Error Display */}
+          {error && (
+            <Alert className="border-red-200 bg-red-50">
+              <Database className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Database Status */}
           {data?.databaseStatus && data.databaseStatus.status !== 'healthy' && (
             <Alert className="border-orange-200 bg-orange-50">
@@ -249,12 +287,11 @@ export default function AdminDashboardPage() {
 
           {/* Admin Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-8">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="applications">Applications</TabsTrigger>
               <TabsTrigger value="members">Members</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
@@ -310,10 +347,6 @@ export default function AdminDashboardPage() {
                       <Plus className="size-4 mr-2" />
                       Add New Resource
                     </Button>
-                    <Button className="w-full justify-start" onClick={() => setActiveTab("applications")}>
-                      <Users className="size-4 mr-2" />
-                      Review Project Applications
-                    </Button>
                     <Button className="w-full justify-start" onClick={() => setActiveTab("members")}>
                       <Users className="size-4 mr-2" />
                       View Project Members
@@ -321,6 +354,10 @@ export default function AdminDashboardPage() {
                     <Button className="w-full justify-start" onClick={() => setActiveTab("team")}>
                       <Plus className="size-4 mr-2" />
                       Add Team Member
+                    </Button>
+                    <Button className="w-full justify-start" onClick={() => router.push("/admin/setup-test-data")}>
+                      <Database className="size-4 mr-2" />
+                      Setup Test Data
                     </Button>
                   </CardContent>
                 </Card>
@@ -348,11 +385,6 @@ export default function AdminDashboardPage() {
             {/* Projects Tab */}
             <TabsContent value="projects" className="space-y-6">
               <AdminProjectManager />
-            </TabsContent>
-
-            {/* Project Applications Tab */}
-            <TabsContent value="applications" className="space-y-6">
-              <ProjectApplicationsManager />
             </TabsContent>
 
             {/* Project Members Tab */}

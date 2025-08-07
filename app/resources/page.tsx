@@ -75,7 +75,7 @@ export default function ResourcesPage() {
     const matchesSearch =
       resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      (resource.tags || []).some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
 
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(resource.category)
     const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(resource.level)
@@ -174,8 +174,12 @@ export default function ResourcesPage() {
                 >
                   <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
                     <div className="relative h-48 overflow-hidden">
-                      <Image
-                        src={resource.image || "/placeholder.svg"}
+                    <Image
+                        src={
+                          resource.url?.includes("youtu.be")
+                            ? `https://img.youtube.com/vi/${resource.url.split("youtu.be/")[1]}/hqdefault.jpg`
+                            : resource.image || "/placeholder.svg"
+                        }
                         alt={resource.title}
                         fill
                         className="object-cover transition-transform hover:scale-105"
@@ -203,7 +207,7 @@ export default function ResourcesPage() {
                     <CardContent className="space-y-4">
                       <p className="text-muted-foreground">{resource.description}</p>
                       <div className="flex flex-wrap gap-2">
-                        {resource.tags.map((tag, j) => (
+                        {(resource.tags || []).map((tag, j) => (
                           <Badge key={j} variant="outline" className="rounded-full">
                             {tag}
                           </Badge>
@@ -212,7 +216,7 @@ export default function ResourcesPage() {
                     </CardContent>
                     <CardFooter>
                       <Button className="rounded-full w-full" asChild>
-                        <Link href={resource.link}>
+                        <Link href={resource.url || resource.link || '#'}>
                           View Resource
                           <ArrowRight className="ml-1 size-4" />
                         </Link>
@@ -363,27 +367,40 @@ export default function ResourcesPage() {
                               </div>
                               <CardTitle className="text-lg">{resource.title}</CardTitle>
                               <CardDescription className="text-xs">
-                                By {resource.author} • Updated {resource.dateUpdated}
+                                By Admin • Updated {new Date(resource.created_at).toLocaleDateString()  }
                               </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                               <p className="text-sm text-muted-foreground line-clamp-3">{resource.description}</p>
                               <div className="flex flex-wrap gap-2">
-                                {resource.tags.slice(0, 2).map((tag, j) => (
+                                {(resource.tags || []).slice(0, 2).map((tag, j) => (
                                   <Badge key={j} variant="outline" className="rounded-full text-xs">
                                     {tag}
                                   </Badge>
                                 ))}
-                                {resource.tags.length > 2 && (
+                                {(resource.tags || []).length > 2 && (
                                   <Badge variant="outline" className="rounded-full text-xs">
-                                    +{resource.tags.length - 2} more
+                                    +{(resource.tags || []).length - 2} more
                                   </Badge>
                                 )}
                               </div>
                             </CardContent>
+                            <CardContent>
+                              <iframe
+                                width="100%"
+                                height="215"
+                                src={`https://www.youtube.com/embed/${resource.url.split("youtu.be/")[1]}`}
+                                title="YouTube video player"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                className="rounded-lg w-full"
+                              />
+                            </CardContent>
+
                             <CardFooter>
                               <Button variant="outline" className="rounded-full w-full" asChild>
-                                <Link href={resource.link}>
+                                <Link href={resource.url || resource.link || '#'}>
                                   View Resource
                                   <ArrowRight className="ml-1 size-4" />
                                 </Link>
@@ -414,7 +431,7 @@ export default function ResourcesPage() {
                 <TabsContent value="tutorials">
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {filteredResources
-                      .filter((r) => r.type.includes("Tutorial"))
+                      .filter((r) => r.type?.includes("Tutorial"))
                       .map((resource, i) => (
                         <motion.div
                           key={i}
@@ -455,7 +472,7 @@ export default function ResourcesPage() {
                             </CardContent>
                             <CardFooter>
                               <Button variant="outline" className="rounded-full w-full" asChild>
-                                <Link href={resource.link}>
+                                <Link href={resource.url || resource.link || '#'}>
                                   View Tutorial
                                   <ArrowRight className="ml-1 size-4" />
                                 </Link>
@@ -470,7 +487,7 @@ export default function ResourcesPage() {
                 <TabsContent value="guides">
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {filteredResources
-                      .filter((r) => r.type.includes("Guide"))
+                      .filter((r) => r.type?.includes("Guide"))
                       .map((resource, i) => (
                         <motion.div
                           key={i}
@@ -511,7 +528,7 @@ export default function ResourcesPage() {
                             </CardContent>
                             <CardFooter>
                               <Button variant="outline" className="rounded-full w-full" asChild>
-                                <Link href={resource.link}>
+                                <Link href={resource.url || resource.link || '#'}>
                                   View Guide
                                   <ArrowRight className="ml-1 size-4" />
                                 </Link>
@@ -526,7 +543,7 @@ export default function ResourcesPage() {
                 <TabsContent value="templates">
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {filteredResources
-                      .filter((r) => r.type.includes("Template"))
+                      .filter((r) => r.type?.includes("Template"))
                       .map((resource, i) => (
                         <motion.div
                           key={i}
@@ -567,7 +584,7 @@ export default function ResourcesPage() {
                             </CardContent>
                             <CardFooter>
                               <Button variant="outline" className="rounded-full w-full" asChild>
-                                <Link href={resource.link}>
+                                <Link href={resource.url || resource.link || '#'}>
                                   Download Template
                                   <Download className="ml-1 size-4" />
                                 </Link>
@@ -785,7 +802,7 @@ export default function ResourcesPage() {
                       </div>
                       <p className="text-muted-foreground mb-6 flex-grow">{resource.description}</p>
                       <Button variant="outline" className="rounded-full w-full" asChild>
-                        <Link href={resource.link} target="_blank" rel="noopener noreferrer">
+                        <Link href={resource.link || '#'} target="_blank" rel="noopener noreferrer">
                           Visit Website
                           <ExternalLink className="ml-1 size-4" />
                         </Link>

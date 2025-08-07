@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Plus, Edit, Trash2, Github, ExternalLink, Eye, Code } from "lucide-react"
+import { Loader2, Plus, Edit, Trash2, Github, ExternalLink, Eye, Code, Users, CheckCircle, XCircle, Clock } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import ImageUpload from "@/components/image-upload"
@@ -26,6 +26,21 @@ interface Project {
   status: string
   team_members: string[]
   created_at: string
+}
+
+interface ProjectApplication {
+  id: string
+  project_id: string
+  user_email: string
+  user_name: string
+  user_major?: string
+  user_year?: string
+  motivation: string
+  skills: string[]
+  status: 'pending' | 'approved' | 'rejected'
+  admin_notes?: string
+  created_at: string
+  updated_at?: string
 }
 
 export default function AdminProjectManager() {
@@ -46,6 +61,11 @@ export default function AdminProjectManager() {
     team_members: ""
   })
   const [submitting, setSubmitting] = useState(false)
+  const [applications, setApplications] = useState<ProjectApplication[]>([])
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [isApplicationsDialogOpen, setIsApplicationsDialogOpen] = useState(false)
+  const [adminNotes, setAdminNotes] = useState("")
+  const [processingApplication, setProcessingApplication] = useState(false)
   
   const { toast } = useToast()
 
@@ -175,6 +195,111 @@ export default function AdminProjectManager() {
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+    }
+  }
+
+  const loadProjectApplications = async (projectId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast({
+          title: "Error",
+          description: "Authentication required",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const response = await fetch('/api/admin/project-applications', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          // Filter applications for this specific project
+          const projectApplications = result.data.filter((app: ProjectApplication) => app.project_id === projectId)
+          setApplications(projectApplications)
+        } else {
+          setApplications([])
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load applications",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error loading applications:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load applications",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleViewApplications = async (project: Project) => {
+    setSelectedProject(project)
+    setIsApplicationsDialogOpen(true)
+    await loadProjectApplications(project.id)
+  }
+
+  const handleApplicationStatusUpdate = async (applicationId: string, status: 'approved' | 'rejected') => {
+    setProcessingApplication(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        throw new Error('No active session found')
+      }
+
+      const response = await fetch('/api/admin/project-applications', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          application_id: applicationId,
+          status,
+          admin_notes: adminNotes
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        toast({
+          title: "Application Updated",
+          description: result.message,
+        })
+        
+        // Reload applications for this project
+        if (selectedProject) {
+          await loadProjectApplications(selectedProject.id)
+        }
+        
+        setAdminNotes("")
+      } else {
+        const error = await response.json()
+        toast({
+          title: "Error",
+          description: error.error || "Failed to update application",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update application",
+        variant: "destructive",
+      })
+    } finally {
+      setProcessingApplication(false)
     }
   }
 
@@ -397,8 +522,12 @@ export default function AdminProjectManager() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewApplications(project)}
+                        >
+                          <Users className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="outline" 
@@ -419,6 +548,128 @@ export default function AdminProjectManager() {
           )}
         </CardContent>
       </Card>
+
+      {/* Applications Dialog */}
+      <Dialog open={isApplicationsDialogOpen} onOpenChange={setIsApplicationsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Project Applications - {selectedProject?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Review and manage applications for this project
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {applications.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No applications found for this project
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {applications.map((application) => (
+                  <Card key={application.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{application.user_name}</CardTitle>
+                          <p className="text-sm text-muted-foreground">{application.user_email}</p>
+                        </div>
+                        <Badge 
+                          variant={
+                            application.status === 'approved' ? 'default' : 
+                            application.status === 'rejected' ? 'destructive' : 
+                            'secondary'
+                          }
+                        >
+                          {application.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium">Major:</span> {application.user_major || 'Not specified'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Year:</span> {application.user_year || 'Not specified'}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <span className="font-medium">Motivation:</span>
+                        <p className="text-sm text-muted-foreground mt-1">{application.motivation}</p>
+                      </div>
+
+                      {application.skills.length > 0 && (
+                        <div>
+                          <span className="font-medium">Skills:</span>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {application.skills.map((skill, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="size-3" />
+                        Applied on {new Date(application.created_at).toLocaleDateString()}
+                      </div>
+
+                      {application.status === 'pending' && (
+                        <div className="space-y-3 pt-4 border-t">
+                          <div>
+                            <label className="text-sm font-medium">Admin Notes (optional)</label>
+                            <Textarea
+                              value={adminNotes}
+                              onChange={(e) => setAdminNotes(e.target.value)}
+                              placeholder="Add any notes about this application..."
+                              rows={2}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleApplicationStatusUpdate(application.id, 'approved')}
+                              disabled={processingApplication}
+                              className="flex-1"
+                            >
+                              <CheckCircle className="size-4 mr-2" />
+                              Approve
+                            </Button>
+                            <Button
+                              onClick={() => handleApplicationStatusUpdate(application.id, 'rejected')}
+                              disabled={processingApplication}
+                              variant="destructive"
+                              className="flex-1"
+                            >
+                              <XCircle className="size-4 mr-2" />
+                              Reject
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {application.status !== 'pending' && (
+                        <div className="text-sm text-muted-foreground pt-2 border-t">
+                          {application.status === 'approved' ? 'Approved' : 'Rejected'} on{' '}
+                          {application.updated_at ? 
+                            new Date(application.updated_at).toLocaleDateString() : 
+                            new Date(application.created_at).toLocaleDateString()
+                          }
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

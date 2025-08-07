@@ -1,6 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+// Email notification function
+async function sendApprovalEmail(userEmail: string, userName: string, projectTitle: string) {
+  try {
+    // You can replace this with your preferred email service (SendGrid, Resend, etc.)
+    const emailData = {
+      to: userEmail,
+      subject: `🎉 Congratulations! You've been approved for ${projectTitle}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #10b981;">🎉 Congratulations!</h2>
+          <p>Dear ${userName},</p>
+          <p>Great news! Your application to join <strong>${projectTitle}</strong> has been approved!</p>
+          <p>You are now officially a member of the project team. Here's what happens next:</p>
+          <ul>
+            <li>You'll receive project updates and communications</li>
+            <li>You can start contributing to the project</li>
+            <li>You'll be added to project meetings and discussions</li>
+          </ul>
+          <p>Welcome to the team! We're excited to have you on board.</p>
+          <p>Best regards,<br>TechClub Admin Team</p>
+        </div>
+      `
+    }
+
+    // For now, we'll log the email (you can implement actual email sending here)
+    console.log('📧 Approval Email would be sent:', {
+      to: userEmail,
+      subject: emailData.subject,
+      project: projectTitle
+    })
+
+    // TODO: Implement actual email sending
+    // Example with a service like Resend:
+    // const response = await fetch('https://api.resend.com/emails', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify(emailData),
+    // })
+
+    return true
+  } catch (error) {
+    console.error('Error sending approval email:', error)
+    return false
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Get the authorization header
@@ -167,8 +216,12 @@ export async function PATCH(request: NextRequest) {
           .eq('id', updatedApplication.project_id)
       }
 
-      // Send email notification to user (you can implement this with your email service)
-      console.log(`Application approved: ${updatedApplication.user_name} (${updatedApplication.user_email}) has been approved to join project "${updatedApplication.projects.title}"`)
+      // Send email notification to user
+      await sendApprovalEmail(
+        updatedApplication.user_email,
+        updatedApplication.user_name,
+        updatedApplication.projects.title
+      )
     }
 
     return NextResponse.json({
