@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "NVCC TechClub",
+  title: "TechClub - NVCC",
   description: "Northern Virginia Community College Technology Club",
 }
 

@@ -13,15 +13,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Plus, Edit, Trash2, ExternalLink, Eye, BookOpen, Tag } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
+import ImageUpload from "@/components/image-upload"
 
 interface Resource {
-  id: number
+  id: string
   title: string
   description: string
   url: string
   type: string
   category: string
   tags: string[]
+  image_url?: string
   created_at: string
 }
 
@@ -38,7 +40,8 @@ export default function AdminResourceManager() {
     url: "",
     type: "link",
     category: "general",
-    tags: ""
+    tags: "",
+    image_url: ""
   })
   const [submitting, setSubmitting] = useState(false)
   

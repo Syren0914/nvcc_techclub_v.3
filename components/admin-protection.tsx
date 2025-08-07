@@ -1,118 +1,121 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Shield, AlertTriangle, Lock } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2, Shield, User } from "lucide-react"
 
 interface AdminProtectionProps {
   children: React.ReactNode
-  fallback?: React.ReactNode
 }
 
-export default function AdminProtection({ children, fallback }: AdminProtectionProps) {
-  const { user, isLoading } = useAuth()
-  const router = useRouter()
-  
+export function AdminProtection({ children }: AdminProtectionProps) {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        setError('Authentication required')
-        setLoading(false)
-        return
-      }
-      
-      checkAdminAccess()
-    }
-  }, [isLoading, user])
+    checkAdminAccess()
+  }, [user])
 
   const checkAdminAccess = async () => {
+    if (!user) {
+      setIsAdmin(false)
+      setLoading(false)
+      return
+    }
+
     try {
-      // Get the current session token
-      const { data: { session } } = await supabase.auth.getSession()
+      // Get the session to access the token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (!session?.access_token) {
-        setError('Authentication required. Please sign in.')
+      if (sessionError || !session) {
+        setError('No active session found')
+        setIsAdmin(false)
         setLoading(false)
         return
       }
 
-      // Check if user is admin by querying the database
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', session.user.id)
-        .single()
+      const token = session.access_token
+      const response = await fetch('/api/admin/check-admin', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
 
-      if (userError) {
-        console.error('Error checking admin status:', userError)
-        setError('Failed to verify admin status. Please try again.')
-        setLoading(false)
-        return
-      }
+      const result = await response.json()
 
-      if (userData && userData.role === 'admin') {
-        setIsAdmin(true)
-        setLoading(false)
+      if (response.ok && result.success) {
+        setIsAdmin(result.isAdmin)
+        setError(null)
       } else {
-        setError('Admin access required. You do not have permission to view this page.')
-        setLoading(false)
+        setError(result.error || 'Failed to check admin access')
+        setIsAdmin(false)
       }
-    } catch (err) {
-      setError('Error checking admin access')
-      console.error('Error checking admin access:', err)
+    } catch (error) {
+      setError('Failed to check admin access')
+      setIsAdmin(false)
+    } finally {
       setLoading(false)
     }
   }
 
-  // Show loading state
-  if (loading || isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Verifying admin access...</span>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Checking admin access...</p>
         </div>
       </div>
     )
   }
 
-  // Show error state
-  if (error || isAdmin === false) {
+  if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4">
-              <Shield className="h-12 w-12 text-red-500" />
-            </div>
-            <CardTitle className="text-xl">Access Denied</CardTitle>
-            <CardDescription>
-              {error || 'You do not have permission to access this page'}
-            </CardDescription>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Authentication Required
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <Alert>
-              <Lock className="h-4 w-4" />
               <AlertDescription>
-                This page is restricted to administrators only.
+                You need to be logged in to access this page.
               </AlertDescription>
             </Alert>
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => router.push('/login')} className="w-full">
-                Sign In
-              </Button>
-              <Button variant="outline" onClick={() => router.push('/')} className="w-full">
-                Go Home
-              </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Admin Access Required
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="destructive">
+              <AlertDescription>
+                {error || 'You need admin privileges to access this page.'}
+              </AlertDescription>
+            </Alert>
+            <div className="mt-4 text-sm text-muted-foreground">
+              <p>Current user: {user.email}</p>
+              <p>If you believe this is an error, please contact an administrator.</p>
             </div>
           </CardContent>
         </Card>
@@ -120,23 +123,5 @@ export default function AdminProtection({ children, fallback }: AdminProtectionP
     )
   }
 
-  // Show children if admin access is confirmed
-  if (isAdmin) {
-    return <>{children}</>
-  }
-
-  // Show fallback if provided
-  if (fallback) {
-    return <>{fallback}</>
-  }
-
-  // Default loading state
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="flex items-center gap-2">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span>Loading...</span>
-      </div>
-    </div>
-  )
+  return <>{children}</>
 } 

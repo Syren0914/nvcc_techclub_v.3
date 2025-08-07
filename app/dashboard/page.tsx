@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { ProjectApplicationsManager } from "@/components/admin/project-applications-manager"
+import { ProjectMembersManager } from "@/components/admin/project-members-manager"
 import { 
   Users, 
   Calendar, 
@@ -170,6 +172,13 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setActiveTab("members")}
+              className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900"
+            >
+              👥 View Project Members
+            </Button>
             <Button variant="outline" onClick={handleJoinDiscord}>
               Join Discord
             </Button>
@@ -227,10 +236,12 @@ export default function DashboardPage() {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
             <TabsTrigger value="community">Community</TabsTrigger>
           </TabsList>
@@ -314,6 +325,14 @@ export default function DashboardPage() {
                 <p className="text-muted-foreground">Community features coming soon.</p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="applications" className="space-y-4">
+            <ProjectApplicationsManager />
+          </TabsContent>
+
+          <TabsContent value="members" className="space-y-4">
+            <ProjectMembersManager />
           </TabsContent>
         </Tabs>
       </div>

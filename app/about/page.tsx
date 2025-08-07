@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { Milestone, TeamMember } from "../types/team"
-import { fetchMilestones, fetchTeamMembers } from "@/lib/database"
 
 
   
@@ -23,27 +22,45 @@ import { fetchMilestones, fetchTeamMembers } from "@/lib/database"
 export default function AboutPage() {
   const [mounted, setMounted] = useState(false)
   const [team, setTeam] = useState<TeamMember[]>([]);
-  const [milestones, setMilestones] = useState<Milestone[]>([]); // Assuming you have a 
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
   useEffect(() => {
     const loadData = async () => {
       try {
-        const teamData = await fetchTeamMembers();
-        if (teamData && teamData.length > 0) {
+        setLoading(true);
+        setError(null);
+
+        // Fetch team members
+        const teamResponse = await fetch('/api/team-members');
+        if (teamResponse.ok) {
+          const teamData = await teamResponse.json();
           setTeam(teamData);
+        } else {
+          console.error('Failed to fetch team members:', teamResponse.status);
         }
-    
-        const milestoneData = await fetchMilestones();
-        if (milestoneData && milestoneData.length > 0) {
+
+        // Fetch milestones
+        const milestonesResponse = await fetch('/api/milestones');
+        if (milestonesResponse.ok) {
+          const milestoneData = await milestonesResponse.json();
           setMilestones(milestoneData);
+        } else {
+          console.error('Failed to fetch milestones:', milestonesResponse.status);
         }
       } catch (error) {
         console.error('Error loading data:', error);
+        setError('Failed to load data. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
+
     loadData();
   }, []);
   
@@ -145,7 +162,7 @@ export default function AboutPage() {
 
   return (
     <div>
-      <Navbar />
+      
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-20 md:py-28 overflow-hidden bg-muted/30">
@@ -299,32 +316,54 @@ export default function AboutPage() {
               </p>
             </motion.div>
 
-            <div className="relative max-w-4xl mx-auto">
-              {/* Timeline line */}
-              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-border"></div>
-
-              {milestones.map((milestone, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className={`relative mb-12 ${i % 2 === 0 ? "md:pr-12 md:text-right md:ml-auto md:mr-1/2" : "md:pl-12 md:ml-1/2"} md:w-1/2 z-10`}
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading milestones...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-destructive">{error}</p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  variant="outline" 
+                  className="mt-4"
                 >
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 md:left-0 md:transform-none md:translate-x-0 md:right-0 md:left-auto">
-                    <div className="size-6 rounded-full bg-primary border-4 border-background"></div>
-                  </div>
-                  <div
-                    className={`bg-card border border-border/40 rounded-lg p-6 shadow-md ${i % 2 === 0 ? "md:mr-6" : "md:ml-6"}`}
+                  Try Again
+                </Button>
+              </div>
+            ) : milestones.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No milestones found.</p>
+              </div>
+            ) : (
+              <div className="relative max-w-4xl mx-auto">
+                {/* Timeline line */}
+                <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-border"></div>
+
+                {milestones.map((milestone, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    className={`relative mb-12 ${i % 2 === 0 ? "md:pr-12 md:text-right md:ml-auto md:mr-1/2" : "md:pl-12 md:ml-1/2"} md:w-1/2 z-10`}
                   >
-                    <div className="text-sm font-bold text-primary mb-2">{milestone.year}</div>
-                    <h3 className="text-xl font-bold mb-2">{milestone.title}</h3>
-                    <p className="text-muted-foreground">{milestone.description}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 md:left-0 md:transform-none md:translate-x-0 md:right-0 md:left-auto">
+                      <div className="size-6 rounded-full bg-primary border-4 border-background"></div>
+                    </div>
+                    <div
+                      className={`bg-card border border-border/40 rounded-lg p-6 shadow-md ${i % 2 === 0 ? "md:mr-6" : "md:ml-6"}`}
+                    >
+                      <div className="text-sm font-bold text-primary mb-2">{milestone.year}</div>
+                      <h3 className="text-xl font-bold mb-2">{milestone.title}</h3>
+                      <p className="text-muted-foreground">{milestone.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -344,51 +383,152 @@ export default function AboutPage() {
               </p>
             </motion.div>
 
-            <Tabs defaultValue="leadership" className="w-full mb-12">
-              <div className="flex justify-center mb-8">
-                <TabsList className="rounded-full p-1">
-                  <TabsTrigger value="leadership" className="rounded-full px-6">
-                    Leadership Team
-                  </TabsTrigger>
-                  <TabsTrigger value="all" className="rounded-full px-6">
-                    All Team Members
-                  </TabsTrigger>
-                </TabsList>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading team members...</p>
               </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-destructive">{error}</p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  variant="outline" 
+                  className="mt-4"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : team.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No team members found.</p>
+              </div>
+            ) : (
+              <Tabs defaultValue="leadership" className="w-full mb-12">
+                <div className="flex justify-center mb-8">
+                  <TabsList className="rounded-full p-1">
+                    <TabsTrigger value="leadership" className="rounded-full px-6">
+                      Leadership Team
+                    </TabsTrigger>
+                    <TabsTrigger value="all" className="rounded-full px-6">
+                      All Team Members
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-              <TabsContent value="leadership">
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {team.slice(0, 6).map((member, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: i * 0.1 }}
-                    >
-                      <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
-                        <CardContent className="p-6 flex flex-col h-full">
-                          <div className="flex flex-col items-center mb-6">
-                            <Avatar className="size-32 mb-4">
-                              <AvatarImage src={member.image} alt={member.name} />
-                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <h3 className="text-xl font-bold">{member.name}</h3>
-                            <p className="text-primary font-medium">{member.role}</p>
-                            <p className="text-sm text-muted-foreground">{member.year} Year</p>
-                          </div>
-                          <p className="text-muted-foreground mb-6 flex-grow">{member.bio}</p>
-                          <div className="border-t border-border/40 pt-4">
-                            <p className="font-medium mb-2">Specialties:</p>
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {member.specialties.map((specialty, j) => (
-                                <Badge key={j} variant="secondary" className="rounded-full">
-                                  {specialty}
-                                </Badge>
-                              ))}
+                <TabsContent value="leadership">
+                  <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {team.slice(0, 6).map((member, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                      >
+                        <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
+                          <CardContent className="p-6 flex flex-col h-full">
+                            <div className="flex flex-col items-center mb-6">
+                              <Avatar className="size-32 mb-4">
+                                <AvatarImage src={member.image} alt={member.name} />
+                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <h3 className="text-xl font-bold">{member.name}</h3>
+                              <p className="text-primary font-medium">{member.role}</p>
+                              <p className="text-sm text-muted-foreground">{member.year} Year</p>
                             </div>
-                            <div className="flex justify-between">
-                              <Link href={`mailto:${member.contact}`} className="text-sm text-primary hover:underline">
+                            <p className="text-muted-foreground mb-6 flex-grow">{member.bio}</p>
+                            <div className="border-t border-border/40 pt-4">
+                              <p className="font-medium mb-2">Specialties:</p>
+                              <div className="flex flex-wrap gap-2 mb-4">
+                                {member.specialties && member.specialties.length > 0 ? (
+                                  member.specialties.map((specialty, j) => (
+                                    <Badge key={j} variant="secondary" className="rounded-full">
+                                      {specialty}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">No specialties listed</span>
+                                )}
+                              </div>
+                              <div className="flex justify-between">
+                                <Link href={`mailto:${member.contact}`} className="text-sm text-primary hover:underline">
+                                  Contact
+                                </Link>
+                                <div className="flex gap-2">
+                                  <Link
+                                    href={member.github}
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="20"
+                                      height="20"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                                      <path d="M9 18c-4.51 2-5-2-7-2" />
+                                    </svg>
+                                  </Link>
+                                  <Link
+                                    href={member.linkedin}
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="20"
+                                      height="20"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                                      <rect width="4" height="12" x="2" y="9" />
+                                      <circle cx="4" cy="4" r="2" />
+                                    </svg>
+                                  </Link>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="all">
+                  <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                    {team.map((member, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: i * 0.05 }}
+                      >
+                        <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
+                          <CardContent className="p-4 flex flex-col h-full">
+                            <div className="flex flex-col items-center mb-4">
+                              <Avatar className="size-24 mb-3">
+                                <AvatarImage src={member.image} alt={member.name} />
+                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <h3 className="text-lg font-bold">{member.name}</h3>
+                              <p className="text-primary text-sm font-medium">{member.role}</p>
+                              <p className="text-xs text-muted-foreground">{member.year} Year</p>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">{member.bio}</p>
+                            <div className="flex justify-between text-xs">
+                              <Link href={`mailto:${member.contact}`} className="text-primary hover:underline">
                                 Contact
                               </Link>
                               <div className="flex gap-2">
@@ -398,8 +538,8 @@ export default function AboutPage() {
                                 >
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
+                                    width="16"
+                                    height="16"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -417,8 +557,8 @@ export default function AboutPage() {
                                 >
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
+                                    width="16"
+                                    height="16"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -433,89 +573,14 @@ export default function AboutPage() {
                                 </Link>
                               </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="all">
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-                  {team.map((member, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: i * 0.05 }}
-                    >
-                      <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
-                        <CardContent className="p-4 flex flex-col h-full">
-                          <div className="flex flex-col items-center mb-4">
-                            <Avatar className="size-24 mb-3">
-                              <AvatarImage src={member.image} alt={member.name} />
-                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <h3 className="text-lg font-bold">{member.name}</h3>
-                            <p className="text-primary text-sm font-medium">{member.role}</p>
-                            <p className="text-xs text-muted-foreground">{member.year} Year</p>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">{member.bio}</p>
-                          <div className="flex justify-between text-xs">
-                            <Link href={`mailto:${member.contact}`} className="text-primary hover:underline">
-                              Contact
-                            </Link>
-                            <div className="flex gap-2">
-                              <Link
-                                href={member.github}
-                                className="text-muted-foreground hover:text-foreground transition-colors"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-                                  <path d="M9 18c-4.51 2-5-2-7-2" />
-                                </svg>
-                              </Link>
-                              <Link
-                                href={member.linkedin}
-                                className="text-muted-foreground hover:text-foreground transition-colors"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                                  <rect width="4" height="12" x="2" y="9" />
-                                  <circle cx="4" cy="4" r="2" />
-                                </svg>
-                              </Link>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
           </div>
         </section>
 

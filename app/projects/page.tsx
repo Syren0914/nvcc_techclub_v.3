@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import Header from "@/components/Header"
+import { JoinTeamModal } from "@/components/join-team-modal"
 import { supabase } from "@/lib/supabase"
 
 interface Project {
@@ -198,22 +199,25 @@ export default function ProjectsPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                      {project.github_url && (
-                        <Button variant="outline" size="sm" className="rounded-full" asChild>
-                          <Link href={project.github_url} target="_blank">
-                            <Github className="size-4 mr-1" />
-                            GitHub
-                          </Link>
-                        </Button>
-                      )}
-                      {project.live_url && (
-                        <Button size="sm" className="rounded-full" asChild>
-                          <Link href={project.live_url} target="_blank">
-                            <ExternalLink className="size-4 mr-1" />
-                            Live Demo
-                          </Link>
-                        </Button>
-                      )}
+                      <JoinTeamModal project={project} />
+                      <div className="flex gap-2">
+                        {project.github_url && (
+                          <Button variant="outline" size="sm" className="rounded-full" asChild>
+                            <Link href={project.github_url} target="_blank">
+                              <Github className="size-4 mr-1" />
+                              GitHub
+                            </Link>
+                          </Button>
+                        )}
+                        {project.live_url && (
+                          <Button size="sm" className="rounded-full" asChild>
+                            <Link href={project.live_url} target="_blank">
+                              <ExternalLink className="size-4 mr-1" />
+                              Live Demo
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
                     </CardFooter>
                   </Card>
                 </motion.div>
@@ -310,22 +314,25 @@ export default function ProjectsPage() {
                               </div>
                             </CardContent>
                             <CardFooter className="flex justify-between">
-                              {project.github_url && (
-                                <Button variant="outline" size="sm" className="rounded-full" asChild>
-                                  <Link href={project.github_url} target="_blank">
-                                    <Github className="size-4 mr-1" />
-                                    GitHub
-                                  </Link>
-                                </Button>
-                              )}
-                              {project.live_url && (
-                                <Button size="sm" className="rounded-full" asChild>
-                                  <Link href={project.live_url} target="_blank">
-                                    <ExternalLink className="size-4 mr-1" />
-                                    Live Demo
-                                  </Link>
-                                </Button>
-                              )}
+                              <JoinTeamModal project={project} />
+                              <div className="flex gap-2">
+                                {project.github_url && (
+                                  <Button variant="outline" size="sm" className="rounded-full" asChild>
+                                    <Link href={project.github_url} target="_blank">
+                                      <Github className="size-4 mr-1" />
+                                      GitHub
+                                    </Link>
+                                  </Button>
+                                )}
+                                {project.live_url && (
+                                  <Button size="sm" className="rounded-full" asChild>
+                                    <Link href={project.live_url} target="_blank">
+                                      <ExternalLink className="size-4 mr-1" />
+                                      Live Demo
+                                    </Link>
+                                  </Button>
+                                )}
+                              </div>
                             </CardFooter>
                           </Card>
                         </motion.div>

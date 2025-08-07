@@ -254,7 +254,7 @@ export default function EventsPage() {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-20 md:py-28 overflow-hidden bg-muted/30">

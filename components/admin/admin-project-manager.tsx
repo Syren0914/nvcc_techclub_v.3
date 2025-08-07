@@ -70,8 +70,12 @@ export default function AdminProjectManager() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        setProjects(data)
+        const result = await response.json()
+        if (result.success && result.data) {
+          setProjects(result.data)
+        } else {
+          setProjects([])
+        }
       } else {
         setError('Failed to fetch projects')
       }
@@ -338,7 +342,7 @@ export default function AdminProjectManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
+                {projects && projects.length > 0 ? projects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell>
                       <div>
@@ -409,7 +413,7 @@ export default function AdminProjectManager() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )) : null}
               </TableBody>
             </Table>
           )}

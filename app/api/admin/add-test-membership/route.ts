@@ -25,57 +25,57 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Check if user exists in our users table
+    // Check if user exists in our users table and has admin role
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('*')
+      .select('role')
       .eq('id', user.id)
       .single()
 
-    if (userError || !userData) {
-      // User doesn't exist in our table, create them
-      const { data: newUser, error: insertError } = await supabase
-        .from('users')
-        .insert([{
-          id: user.id,
-          email: user.email,
-          role: 'user' // Default role
-        }])
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Error creating user:', insertError)
-        return NextResponse.json({
-          success: false,
-          error: 'Failed to create user record',
-          details: insertError
-        })
-      }
-
+    if (userError || !userData || userData.role !== 'admin') {
       return NextResponse.json({
-        success: true,
-        isAdmin: false,
-        user: newUser,
-        message: 'User created with default role'
+        success: false,
+        error: 'Admin access required'
       })
     }
 
-    // User exists, check if they're admin
-    const isAdmin = userData.role === 'admin'
+    // Add a test membership application
+    const { data: membership, error } = await supabase
+      .from('membership_applications')
+      .insert([{
+        name: 'Test User',
+        email: 'test@email.vccs.edu',
+        student_id: '12345',
+        major: 'Computer Science',
+        graduation_year: 2025,
+        interests: ['Web Development', 'AI/ML'],
+        experience: 'Some programming experience',
+        motivation: 'Want to join TechClub to learn and grow',
+        status: 'approved'
+      }])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating test membership:', error)
+      return NextResponse.json(
+        { error: 'Failed to create test membership' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      isAdmin,
-      user: userData,
-      message: isAdmin ? 'Admin access granted' : 'User access granted'
+      message: 'Test membership application created successfully',
+      data: membership
     })
 
   } catch (error) {
-    console.error('Error in check admin API:', error)
+    console.error('Error in add test membership API:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     )
   }
 }
+

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if tables exist
-    const tableChecks = ['users', 'events', 'projects', 'resources', 'membership_applications']
+    const tableChecks = ['users', 'events', 'projects', 'resources', 'membership_applications', 'team_members', 'milestones']
     const tableStatus = {}
     const missingTables = []
     
@@ -53,14 +53,26 @@ export async function POST(request: NextRequest) {
 
     const allTablesExist = missingTables.length === 0
 
-    return NextResponse.json({
-      success: allTablesExist,
-      message: allTablesExist 
-        ? 'All database tables exist and are working correctly!' 
-        : `Missing tables: ${missingTables.join(', ')}. Please run the SQL script in Supabase.`,
-      tableStatus,
-      missingTables
-    })
+    if (allTablesExist) {
+      return NextResponse.json({
+        success: true,
+        message: 'All database tables exist and are working correctly!'
+      })
+    } else {
+      return NextResponse.json({
+        success: false,
+        message: `Missing tables: ${missingTables.join(', ')}. Please run the recreate-tables.sql script in Supabase SQL Editor.`,
+        missingTables,
+        tableStatus,
+        instructions: [
+          '1. Go to your Supabase dashboard',
+          '2. Navigate to the SQL Editor',
+          '3. Copy the contents of recreate-tables.sql file',
+          '4. Paste and execute the SQL script',
+          '5. Refresh this page to verify the setup'
+        ]
+      })
+    }
 
   } catch (error) {
     console.error('Error in setup database API:', error)

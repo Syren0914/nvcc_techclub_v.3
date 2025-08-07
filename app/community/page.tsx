@@ -252,7 +252,7 @@ export default function CommunityPage() {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <main className="flex-1">
         {/* Database Status Indicator */}
         {databaseStatus && (

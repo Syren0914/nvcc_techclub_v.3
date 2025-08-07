@@ -32,6 +32,8 @@ import { useToast } from "@/hooks/use-toast"
 import AdminEventManager from "@/components/admin/admin-event-manager"
 import AdminProjectManager from "@/components/admin/admin-project-manager"
 import AdminResourceManager from "@/components/admin/admin-resource-manager"
+import { ProjectMembersManager } from "@/components/admin/project-members-manager"
+import { ProjectApplicationsManager } from "@/components/admin/project-applications-manager"
 
 interface AdminDashboardData {
   totalUsers: number
@@ -154,8 +156,11 @@ export default function AdminDashboardPage() {
             <Badge variant="destructive" className="text-xs">
               Admin Mode
             </Badge>
-            <Button variant="outline" size="sm" onClick={() => router.push("/dashboard")}>
-              Back to Dashboard
+            <Button variant="outline" size="sm" onClick={() => router.push("/admin/applications")}>
+              Member Applications
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setActiveTab("applications")}>
+              Project Applications
             </Button>
           </div>
         </div>
@@ -244,11 +249,13 @@ export default function AdminDashboardPage() {
 
           {/* Admin Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
+              <TabsTrigger value="applications">Applications</TabsTrigger>
+              <TabsTrigger value="members">Members</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
             </TabsList>
@@ -303,6 +310,14 @@ export default function AdminDashboardPage() {
                       <Plus className="size-4 mr-2" />
                       Add New Resource
                     </Button>
+                    <Button className="w-full justify-start" onClick={() => setActiveTab("applications")}>
+                      <Users className="size-4 mr-2" />
+                      Review Project Applications
+                    </Button>
+                    <Button className="w-full justify-start" onClick={() => setActiveTab("members")}>
+                      <Users className="size-4 mr-2" />
+                      View Project Members
+                    </Button>
                     <Button className="w-full justify-start" onClick={() => setActiveTab("team")}>
                       <Plus className="size-4 mr-2" />
                       Add Team Member
@@ -333,6 +348,16 @@ export default function AdminDashboardPage() {
             {/* Projects Tab */}
             <TabsContent value="projects" className="space-y-6">
               <AdminProjectManager />
+            </TabsContent>
+
+            {/* Project Applications Tab */}
+            <TabsContent value="applications" className="space-y-6">
+              <ProjectApplicationsManager />
+            </TabsContent>
+
+            {/* Project Members Tab */}
+            <TabsContent value="members" className="space-y-6">
+              <ProjectMembersManager />
             </TabsContent>
 
             {/* Resources Tab */}

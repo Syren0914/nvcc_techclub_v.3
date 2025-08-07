@@ -40,7 +40,8 @@ export default function AdminEventManager() {
     date: "",
     location: "",
     type: "general",
-    max_participants: ""
+    max_participants: "",
+    image_url: ""
   })
   const [submitting, setSubmitting] = useState(false)
   
@@ -133,7 +134,8 @@ export default function AdminEventManager() {
       date: event.date,
       location: event.location || "",
       type: event.type,
-      max_participants: event.max_participants?.toString() || ""
+      max_participants: event.max_participants?.toString() || "",
+      image_url: event.image_url || ""
     })
     setIsEditing(true)
     setIsDialogOpen(true)
@@ -149,7 +151,8 @@ export default function AdminEventManager() {
       date: "",
       location: "",
       type: "general",
-      max_participants: ""
+      max_participants: "",
+      image_url: ""
     })
   }
 
@@ -267,6 +270,13 @@ export default function AdminEventManager() {
                   placeholder="Leave empty for unlimited"
                 />
               </div>
+              
+              <ImageUpload
+                value={formData.image_url}
+                onChange={(url) => setFormData({ ...formData, image_url: url })}
+                label="Event Image"
+                placeholder="Enter image URL or upload a file"
+              />
               
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>

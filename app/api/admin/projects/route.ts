@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch all projects
+    // Fetch all projects with member count
     const { data: projects, error } = await supabase
       .from('projects')
       .select('*')
@@ -51,7 +51,26 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(projects)
+    // Get member count for each project
+    const projectsWithMemberCount = await Promise.all(
+      projects.map(async (project) => {
+        const { count: memberCount } = await supabase
+          .from('project_applications')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', project.id)
+          .eq('status', 'approved')
+
+        return {
+          ...project,
+          member_count: memberCount || 0
+        }
+      })
+    )
+
+    return NextResponse.json({
+      success: true,
+      data: projectsWithMemberCount
+    })
   } catch (error) {
     console.error('Error in projects API:', error)
     return NextResponse.json(

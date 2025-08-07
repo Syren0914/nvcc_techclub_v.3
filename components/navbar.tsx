@@ -64,7 +64,7 @@ export default function Navbar() {
           {!isLoading && user ? (
             <div className="flex items-center gap-2">
               <Button asChild variant="outline" size="sm">
-                <Link href="/admin/applications">
+                <Link href="/admin">
                   <User className="size-4 mr-2" />
                   Dashboard
                 </Link>
