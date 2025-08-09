@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the authorization header
@@ -41,12 +41,13 @@ export async function PUT(
     }
 
     const { status } = await request.json()
+    const { id } = await context.params
 
     // Update the application status
     const { data, error } = await supabase
       .from('membership_applications')
       .update({ status })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
 
     if (error) {

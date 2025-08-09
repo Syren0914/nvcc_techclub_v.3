@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useTheme } from "next-themes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getTeamMembers, getUpcomingEvents, getFeaturedEvent, getProjectsByCategory } from "@/lib/database"
@@ -56,6 +57,26 @@ export default function ClubHomePage() {
   const [featuredEvent, setFeaturedEvent] = useState<Event | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+
+  const getEventImage = (type?: string, isOnline?: boolean) => {
+    const t = (type || '').toLowerCase()
+    if (t.includes('hackathon') || t.includes('competition')) return '/hackathon.jpg'
+    if (t.includes('workshop')) return '/web.png'
+    if (t.includes('field')) return '/data.png'
+    if (t.includes('meeting')) return '/tech.jpg'
+    if (t.includes('social')) return '/creative.png'
+    if (t.includes('conference') || t.includes('talk')) return '/resources.jpg'
+    return isOnline ? '/fullstack.avif' : '/tech.jpg'
+  }
+
+  const getEventImageFromRecord = (ev: Event) => {
+    const anyEv = ev as any
+    const dbImage = anyEv?.image_url || anyEv?.image
+    if (typeof dbImage === 'string' && dbImage.length > 0) return dbImage
+    return getEventImage(ev.type, (ev as any)?.is_online)
+  }
   
   // Membership form state
   const [formData, setFormData] = useState({
@@ -286,7 +307,7 @@ export default function ClubHomePage() {
                 robotics. Join us to learn, build, and grow together.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href={"/login"}>
+                <Link href={"/join"}>
                   <Button size="lg" className="rounded-full h-12 px-8 text-base">
                     Join Our Community
                     <ChevronRight className="ml-2 size-4" />
@@ -585,6 +606,7 @@ export default function ClubHomePage() {
                 We host regular meetings, workshops, and special events throughout the year. Check out what's coming up!
               </p>
             </motion.div>
+            
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {upcomingEvents.map((event, i) => (
@@ -596,11 +618,22 @@ export default function ClubHomePage() {
                   transition={{ duration: 0.5, delay: i * 0.05 }}
                 >
                   <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur transition-all hover:shadow-md">
+                    <div className="relative h-40 overflow-hidden">
+                      <Image
+                        src={getEventImageFromRecord(event)}
+                        alt={event.title}
+                        fill
+                        className="object-cover transition-transform hover:scale-105"
+                      />
+                      <div className="absolute top-2 right-2">
+                        <Badge variant={event.is_online ? 'outline' : 'secondary'} className="rounded-full">
+                          {event.is_online ? 'Online' : 'In Person'}
+                        </Badge>
+                      </div>
+                    </div>
                     <CardContent className="p-6 flex flex-col h-full">
                       <div className="flex justify-between items-start mb-4">
-                        <Badge variant={event.is_online ? "outline" : "secondary"} className="rounded-full">
-                          {event.is_online ? "Online" : "In Person"}
-                        </Badge>
+                        <span></span>
                         <Badge variant="outline" className="rounded-full">
                           {event.type}
                         </Badge>
@@ -618,10 +651,23 @@ export default function ClubHomePage() {
                         <MapPin className="size-4 mr-2" />
                         {event.location}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-6 flex-grow">{event.description}</p>
-                      <Button variant="outline" className="rounded-full mt-auto">
-                        RSVP
-                      </Button>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3 min-h-[3.6em]">{event.description}</p>
+                      {/* min-h ensures consistent height for 3 lines (approx 1.2em * 3) */}
+                      <div className="flex gap-2 mt-auto">
+                        <Button
+                          variant="outline"
+                          className="rounded-full"
+                          onClick={() => {
+                            setSelectedEvent(event)
+                            setIsEventModalOpen(true)
+                          }}
+                        >
+                          Learn More
+                        </Button>
+                        <Button variant="outline" className="rounded-full">
+                          RSVP
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -1008,6 +1054,39 @@ export default function ClubHomePage() {
           </div>
         </section>
       </main>
+      <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedEvent?.title || 'Event Details'}</DialogTitle>
+            <DialogDescription>
+              {selectedEvent?.type} • {selectedEvent?.is_online ? 'Online' : 'In Person'}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedEvent && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center text-muted-foreground"><Calendar className="size-4 mr-2" /> {selectedEvent.date}</div>
+                <div className="flex items-center text-muted-foreground"><Clock className="size-4 mr-2" /> {selectedEvent.time || 'TBA'}</div>
+                <div className="flex items-center text-muted-foreground md:col-span-2"><MapPin className="size-4 mr-2" /> {selectedEvent.location}</div>
+              </div>
+              <p className="text-sm leading-6">{selectedEvent.description || 'No description provided.'}</p>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEventModalOpen(false)
+                    setSelectedEvent(null)
+                  }}
+                  className="rounded-full"
+                >
+                  Close
+                </Button>
+                <Button className="rounded-full">RSVP</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <footer className="w-full border-t bg-background/95 backdrop-blur-sm">
         <div className="container flex flex-col gap-8 px-4 py-10 md:px-6 lg:py-16">
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">

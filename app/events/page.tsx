@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import {
@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -40,6 +41,8 @@ export default function EventsPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>("")
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedEvent, setSelectedEvent] = useState<UIEvent | null>(null)
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -61,128 +64,80 @@ export default function EventsPage() {
 
   const locations = ["All Locations", "Tech Building", "Online", "Innovation Hub", "Main Campus", "Off Campus"]
 
-  const upcomingEvents = [
-    {
-      title: "Intro to Ethical Hacking",
-      date: "May 15, 2025",
-      time: "6:00 PM - 8:00 PM",
-      location: "Tech Building, Room 302",
-      description:
-        "Learn the basics of ethical hacking and penetration testing in this hands-on workshop. We'll cover reconnaissance, scanning, exploitation, and reporting. Bring your laptop with Kali Linux installed (VMs are fine).",
-      type: "Workshop",
-      isOnline: false,
-      image: "/ethi.png",
-      capacity: 30,
-      registered: 18,
-      tags: ["Cybersecurity", "Beginner Friendly"],
-      host: "Jamie Lee, Cybersecurity Lead",
-    },
-    {
-      title: "Web Development Bootcamp",
-      date: "May 20, 2025",
-      time: "5:30 PM - 7:30 PM",
-      location: "Online (Zoom)",
-      description:
-        "A beginner-friendly introduction to HTML, CSS, and JavaScript for web development. This is the first session in our 6-week web development series. No prior experience required!",
-      type: "Workshop",
-      isOnline: true,
-      image: "/web.png",
-      capacity: 50,
-      registered: 32,
-      tags: ["Web Development", "Beginner Friendly"],
-      host: "Sam Rodriguez, Web Development Lead",
-    },
-    {
-      title: "Data Center Field Trip",
-      date: "June 5, 2025",
-      time: "1:00 PM - 4:00 PM",
-      location: "City Data Center",
-      description:
-        "Visit the local data center to see how large-scale computing infrastructure works. Transportation will be provided from campus. Limited spots available!",
-      type: "Field Trip",
-      isOnline: false,
-      image: "/data.png",
-      capacity: 20,
-      registered: 15,
-      tags: ["Infrastructure", "Networking"],
-      host: "Casey Wong, Outreach Coordinator",
-    },
-    {
-      title: "Game Jam Weekend",
-      date: "June 12-14, 2025",
-      time: "Starts at 5:00 PM Friday",
-      location: "Innovation Hub",
-      description:
-        "48-hour game development challenge. Form teams and create a game from scratch! Prizes for the best games in various categories. Food and drinks provided.",
-      type: "Competition",
-      isOnline: false,
-      image: "/placeholder.svg?height=300&width=500",
-      capacity: 60,
-      registered: 42,
-      tags: ["Game Development", "Team Event"],
-      host: "Taylor Smith, Events Coordinator",
-    },
-    {
-      title: "Machine Learning Study Group",
-      date: "May 25, 2025",
-      time: "4:00 PM - 6:00 PM",
-      location: "Tech Building, Room 204",
-      description:
-        "Weekly study group focusing on machine learning concepts and implementations. This week's topic: Neural Networks and Deep Learning.",
-      type: "Meeting",
-      isOnline: false,
-      image: "/placeholder.svg?height=300&width=500",
-      capacity: 25,
-      registered: 12,
-      tags: ["AI/ML", "Intermediate"],
-      host: "Alex Johnson, Club President",
-    },
-    {
-      title: "Resume Workshop",
-      date: "May 28, 2025",
-      time: "6:00 PM - 7:30 PM",
-      location: "Online (Zoom)",
-      description:
-        "Learn how to create a standout tech resume. We'll cover formatting, content, and how to highlight your projects and skills. Bring your current resume for feedback!",
-      type: "Workshop",
-      isOnline: true,
-      image: "/placeholder.svg?height=300&width=500",
-      capacity: 40,
-      registered: 22,
-      tags: ["Career Development", "All Levels"],
-      host: "Morgan Chen, Secretary",
-    },
-    {
-      title: "Robotics Competition Prep",
-      date: "June 2, 2025",
-      time: "5:00 PM - 8:00 PM",
-      location: "Engineering Building, Lab 3",
-      description:
-        "Preparation session for the upcoming regional robotics competition. We'll be testing and fine-tuning our robots.",
-      type: "Meeting",
-      isOnline: false,
-      image: "/placeholder.svg?height=300&width=500",
-      capacity: 15,
-      registered: 10,
-      tags: ["Robotics", "Advanced"],
-      host: "Jordan Patel, Technical Lead",
-    },
-    {
-      title: "Tech Industry Mixer",
-      date: "June 18, 2025",
-      time: "6:30 PM - 9:00 PM",
-      location: "University Center, Grand Hall",
-      description:
-        "Networking event with representatives from local tech companies. Great opportunity to make connections for internships and jobs. Professional attire recommended.",
-      type: "Social",
-      isOnline: false,
-      image: "/placeholder.svg?height=300&width=500",
-      capacity: 100,
-      registered: 65,
-      tags: ["Networking", "Career Development"],
-      host: "Riley Kim, Marketing Director",
-    },
-  ]
+  // Normalize backend events for the UI
+  type UIEvent = {
+    id: number
+    title: string
+    date: string
+    dateObj: Date
+    time: string
+    location: string
+    description: string
+    type: string
+    isOnline: boolean
+    image_url: string
+    capacity: number
+    registered: number
+    tags: string[]
+    host: string
+  }
+
+  const normalizedEvents: UIEvent[] = useMemo(() => {
+    const toDisplayDate = (isoOrDate: string | null | undefined) => {
+      if (!isoOrDate) return ""
+      const d = new Date(isoOrDate)
+      if (isNaN(d.getTime())) return String(isoOrDate)
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    }
+
+    const pickFallbackImage = (type?: string, isOnline?: boolean) => {
+      const t = (type || '').toLowerCase()
+      if (t.includes('hackathon') || t.includes('competition')) return '/hackathon.jpg'
+      if (t.includes('workshop')) return '/web.png'
+      if (t.includes('field')) return '/data.png'
+      if (t.includes('meeting')) return '/tech.jpg'
+      if (t.includes('social')) return '/creative.png'
+      if (t.includes('conference') || t.includes('talk')) return '/resources.jpg'
+      return isOnline ? '/fullstack.avif' : '/tech.jpg'
+    }
+
+    return (events || []).map((e) => {
+      const dateObj = e.date ? new Date(e.date) : new Date()
+      const anyEvent = e as any
+      const dbImage = anyEvent?.image_url || anyEvent?.image
+      const imageUrl = typeof dbImage === 'string' && dbImage.length > 0
+        ? dbImage
+        : pickFallbackImage(e.type, e.is_online)
+      return {
+        id: e.id,
+        title: e.title,
+        date: toDisplayDate(e.date),
+        dateObj,
+        time: e.time || '',
+        location: e.location || 'TBA',
+        description: e.description || '',
+        type: e.type || 'General',
+        isOnline: !!e.is_online,
+        image_url: imageUrl,
+        capacity: 0,
+        registered: 0,
+        tags: [e.type || 'General'],
+        host: 'TechClub',
+      }
+    })
+  }, [events])
+
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
+  const upcomingEvents = useMemo(() =>
+    normalizedEvents
+      .filter(ev => ev.dateObj >= today)
+      .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())
+  , [normalizedEvents, today])
 
   const pastEvents = [
     {
@@ -291,7 +246,7 @@ export default function EventsPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/hackathon.jpg"
+                    src="https://images.unsplash.com/photo-1562408590-e32931084e23?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     width={800}
                     height={600}
                     alt="TechClub workshop in progress"
@@ -332,7 +287,7 @@ export default function EventsPage() {
                   <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
                     <div className="relative h-48 overflow-hidden">
                       <Image
-                        src={event.image || "/placeholder.svg"}
+                        src={event.image_url || "/placeholder.svg"}
                         alt={event.title}
                         fill
                         className="object-cover transition-transform hover:scale-105"
@@ -375,7 +330,19 @@ export default function EventsPage() {
                           <Users className="size-4 inline mr-1" />
                           {event.registered}/{event.capacity} registered
                         </div>
-                        <Button className="rounded-full">RSVP</Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={() => {
+                              setSelectedEvent(event)
+                              setIsEventModalOpen(true)
+                            }}
+                          >
+                            Learn More
+                          </Button>
+                          <Button className="rounded-full">RSVP</Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -526,7 +493,7 @@ export default function EventsPage() {
                                 <MapPin className="size-4 mr-2" />
                                 {event.location}
                               </div>
-                              <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
+                              <p className="text-sm text-muted-foreground mb-4 line-clamp-3 min-h-[3.6em]">
                                 {event.description}
                               </p>
                               <div className="flex flex-wrap gap-2 mb-4">
@@ -541,9 +508,21 @@ export default function EventsPage() {
                                   <Users className="size-4 inline mr-1" />
                                   {event.registered}/{event.capacity}
                                 </div>
-                                <Button variant="outline" className="rounded-full">
-                                  RSVP
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    className="rounded-full"
+                                    onClick={() => {
+                                      setSelectedEvent(event)
+                                      setIsEventModalOpen(true)
+                                    }}
+                                  >
+                                    Learn More
+                                  </Button>
+                                  <Button variant="outline" className="rounded-full">
+                                    RSVP
+                                  </Button>
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
@@ -833,6 +812,54 @@ export default function EventsPage() {
           </div>
         </section>
       </main>
+      <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedEvent?.title || 'Event Details'}</DialogTitle>
+            <DialogDescription>
+              {selectedEvent?.type} • {selectedEvent?.isOnline ? 'Online' : 'In Person'}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedEvent && (
+            <div className="space-y-4">
+              <div className="relative w-full h-56 overflow-hidden rounded-md border">
+                <Image
+                  src={selectedEvent.image_url || '/placeholder.svg'}
+                  alt={selectedEvent.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center text-muted-foreground"><Calendar className="size-4 mr-2" /> {selectedEvent.date}</div>
+                <div className="flex items-center text-muted-foreground"><Clock className="size-4 mr-2" /> {selectedEvent.time || 'TBA'}</div>
+                <div className="flex items-center text-muted-foreground md:col-span-2"><MapPin className="size-4 mr-2" /> {selectedEvent.location}</div>
+              </div>
+              <p className="text-sm leading-6">{selectedEvent.description || 'No description provided.'}</p>
+              {selectedEvent.tags?.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedEvent.tags.map((t, idx) => (
+                    <Badge key={idx} variant="outline" className="rounded-full">{t}</Badge>
+                  ))}
+                </div>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEventModalOpen(false)
+                    setSelectedEvent(null)
+                  }}
+                  className="rounded-full"
+                >
+                  Close
+                </Button>
+                <Button className="rounded-full">RSVP</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <Footer />
     </>
   )

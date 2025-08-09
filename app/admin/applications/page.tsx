@@ -14,7 +14,7 @@ import { Loader2, Eye, CheckCircle, XCircle, Clock, Mail, Phone, Github, Linkedi
 import { supabase } from "@/lib/supabase"
 
 interface MembershipApplication {
-  id: number
+  id: string
   first_name: string
   last_name: string
   email: string
@@ -37,7 +37,7 @@ function ApplicationsContent() {
   const [error, setError] = useState('')
   const [selectedApplication, setSelectedApplication] = useState<MembershipApplication | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [updatingStatus, setUpdatingStatus] = useState<number | null>(null)
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
   const [sendingEmail, setSendingEmail] = useState(false)
 
   useEffect(() => {
@@ -75,7 +75,7 @@ function ApplicationsContent() {
     }
   }
 
-  const updateApplicationStatus = async (applicationId: number, newStatus: 'approved' | 'rejected') => {
+  const updateApplicationStatus = async (applicationId: string, newStatus: 'approved' | 'rejected') => {
     setUpdatingStatus(applicationId)
     try {
       // Get the current session token
@@ -121,7 +121,7 @@ function ApplicationsContent() {
     }
   }
 
-  const sendApprovalEmail = async (applicationId: number) => {
+  const sendApprovalEmail = async (applicationId: string) => {
     setSendingEmail(true)
     try {
       // Get the current session token

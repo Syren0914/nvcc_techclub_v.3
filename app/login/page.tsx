@@ -25,7 +25,7 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password)
-      router.push("/admin/applications")
+      router.push("/admin")
     } catch (error: any) {
       setError(error.message || "Failed to sign in")
     } finally {
