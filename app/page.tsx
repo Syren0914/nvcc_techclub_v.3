@@ -62,6 +62,16 @@ export default function ClubHomePage() {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
+  // Support form state
+  const [supportFormData, setSupportFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  })
+  const [supportStatus, setSupportStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
+  const [supportMessage, setSupportMessage] = useState('')
+
   const getEventImage = (type?: string, isOnline?: boolean) => {
     const t = (type || '').toLowerCase()
     if (t.includes('hackathon') || t.includes('competition')) return '/hackathon.jpg'
@@ -90,6 +100,36 @@ export default function ClubHomePage() {
   })
   
   const { isSubmitting, submitStatus, errorMessage, submitApplication, resetStatus } = useMembership()
+
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSupportStatus('submitting')
+    setSupportMessage('')
+
+    try {
+      const response = await fetch('/api/support', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(supportFormData),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSupportStatus('success')
+        setSupportMessage('Thank you! Your message has been sent successfully.')
+        setSupportFormData({ name: '', email: '', subject: '', message: '' })
+      } else {
+        setSupportStatus('error')
+        setSupportMessage(data.error || 'Failed to send message. Please try again.')
+      }
+    } catch (error) {
+      setSupportStatus('error')
+      setSupportMessage('Network error. Please check your connection and try again.')
+    }
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -880,6 +920,172 @@ export default function ClubHomePage() {
           </div>
         </section>
 
+        {/* Support Section */}
+        <section id="support" className="w-full py-20 md:py-32 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 relative overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#00000005_1px,transparent_1px),linear-gradient(to_bottom,#00000005_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+          
+          <div className="container px-4 md:px-6 relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center space-y-6 text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">Need Help? We're Here!</h2>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                Have a question about TechClub, our events, or just want to learn more? Reach out to us and we'll get back to you as soon as possible.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <h3 className="text-2xl font-bold">Get in Touch</h3>
+                <p className="text-muted-foreground">
+                  Whether you're a current member, prospective member, or just curious about what we do, we'd love to hear from you!
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <MessageSquare className="size-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Quick Questions</p>
+                      <p className="text-sm text-muted-foreground">
+                        Get answers about events, workshops, or membership
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Users className="size-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Join Our Community</p>
+                      <p className="text-sm text-muted-foreground">
+                        Learn how to become a member and get involved
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Calendar className="size-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Event Information</p>
+                      <p className="text-sm text-muted-foreground">
+                        Details about upcoming workshops and activities
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <p className="font-medium mb-2">Other Ways to Connect</p>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="size-4" />
+                    <span>nvcctechclub@gmail.com</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm mt-1 text-muted-foreground">
+                    <MessageSquare className="size-4" />
+                    <span>Discord: TechClub Community</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur">
+                  <CardHeader>
+                    <CardTitle>Send us a Message</CardTitle>
+                    <CardDescription>
+                      Fill out the form below and we'll get back to you within 24 hours.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="space-y-4" onSubmit={handleSupportSubmit}>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Name</label>
+                          <input
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                            placeholder="Your name"
+                            value={supportFormData.name}
+                            onChange={(e) => setSupportFormData({...supportFormData, name: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Email</label>
+                          <input
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                            placeholder="your.email@example.com"
+                            type="email"
+                            value={supportFormData.email}
+                            onChange={(e) => setSupportFormData({...supportFormData, email: e.target.value})}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Subject</label>
+                        <input
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          placeholder="What's your question about?"
+                          value={supportFormData.subject}
+                          onChange={(e) => setSupportFormData({...supportFormData, subject: e.target.value})}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Message</label>
+                        <textarea
+                          className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 resize-none"
+                          placeholder="Tell us more about your question or how we can help..."
+                          value={supportFormData.message}
+                          onChange={(e) => setSupportFormData({...supportFormData, message: e.target.value})}
+                          required
+                        />
+                      </div>
+                      
+                      {supportStatus === 'success' && (
+                        <div className="text-green-600 text-sm text-center bg-green-50 dark:bg-green-950/20 p-3 rounded-md">
+                          {supportMessage}
+                        </div>
+                      )}
+                      {supportStatus === 'error' && (
+                        <div className="text-red-600 text-sm text-center bg-red-50 dark:bg-red-950/20 p-3 rounded-md">
+                          {supportMessage}
+                        </div>
+                      )}
+                      
+                      <Button 
+                        type="submit"
+                        className="w-full rounded-full"
+                        disabled={supportStatus === 'submitting'}
+                      >
+                        {supportStatus === 'submitting' ? 'Sending...' : 'Send Message'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
         {/* Contact & Membership Section */}
         <section className="w-full py-20 md:py-32 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground relative overflow-hidden">
           <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
@@ -967,8 +1173,8 @@ export default function ClubHomePage() {
               >
                 <Card className="overflow-hidden border-white/20 bg-black backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white">Join TechClub</CardTitle>
-                    <CardDescription className="text-white/80">Fill out this form to become a member</CardDescription>
+                    <CardTitle className="text-white">Contact TechClub</CardTitle>
+                    <CardDescription className="text-white/80"> Have a question? Fill out this form to contact TechClub</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form className="space-y-4" onSubmit={(e) => {

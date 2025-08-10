@@ -115,6 +115,12 @@ function Header() {
         >
           Community
         </Link>
+        <Link
+          href="#support"
+          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Support
+        </Link>
       </nav>
       <div className="hidden md:flex gap-4 items-center">
         <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
@@ -166,6 +172,9 @@ function Header() {
           </Link>
           <Link href="#community" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
             Community
+          </Link>
+          <Link href="#support" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+            Support
           </Link>
           <div className="flex flex-col gap-2 pt-2 border-t">
             <Link href="/login" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
