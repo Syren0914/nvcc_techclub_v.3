@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Github, Twitter, Linkedin, Mail } from "lucide-react"
+import { Github, Twitter, Linkedin, Mail, Code } from "lucide-react"
 import Image from "next/image"
 
 export default function Footer() {
@@ -9,9 +9,9 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="size-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-                <Image src={"/tech.jpg"} alt={""} height={100} width={100}></Image>
-              </div>
+                <div className="size-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                  <Code className="size-4" />
+                </div>
               <span className="font-bold text-xl">TechClub</span>
             </Link>
             <p className="text-muted-foreground mb-4">
@@ -135,10 +135,11 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="mailto:contact@techclub.university.edu"
+                  href="mailto:nvcctechclub@gmail.com"
+                  target="_blank"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  contact@techclub.university.edu
+                  nvcctechclub@gmail.com
                 </Link>
               </li>
               <li>

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { Milestone, TeamMember } from "../types/team"
+import ASCIIText from "../components/ASCIIText/ASCIIText"
 
 
   
@@ -201,17 +202,17 @@ export default function AboutPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
+                className="relative w-full h-full flex items-center justify-center"
               >
-                <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
-                  <Image
-                    src="/tech.jpg"
-                    width={800}
-                    height={600}
-                    alt="TechClub team at a hackathon"
-                    className="w-full h-auto"
+                <div className="w-full max-w-md  flex items-center justify-center overflow-hidden">
+                  <ASCIIText
+                    text='Hello World'
+                    enableWaves={true}
+                    asciiFontSize={5}
+                    
                   />
-                  <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/10 dark:ring-white/10"></div>
                 </div>
+                
               </motion.div>
             </div>
           </div>
@@ -457,7 +458,7 @@ export default function AboutPage() {
                                 </Link>
                                 <div className="flex gap-2">
                                   <Link
-                                    href={member.github}
+                                    href={member.github ||""}
                                     className="text-muted-foreground hover:text-foreground transition-colors"
                                   >
                                     <svg
@@ -476,7 +477,7 @@ export default function AboutPage() {
                                     </svg>
                                   </Link>
                                   <Link
-                                    href={member.linkedin}
+                                    href={member.linkedin ||""}
                                     className="text-muted-foreground hover:text-foreground transition-colors"
                                   >
                                     <svg

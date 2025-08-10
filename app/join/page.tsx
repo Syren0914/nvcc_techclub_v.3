@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, CheckCircle, AlertCircle, Users, Code, Shield, Gamepad, Cpu, Database, Globe } from "lucide-react"
+import { Loader2, CheckCircle, AlertCircle, Users, Code, Shield, Gamepad, Cpu, Database, Globe, XCircle } from "lucide-react"
 import { submitMembershipApplication } from "@/lib/database"
 
 export default function JoinPage() {
@@ -33,16 +33,119 @@ export default function JoinPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false)
+  const [emailExists, setEmailExists] = useState<{ exists: boolean; status?: string; message?: string } | null>(null)
+
+  const validateEmail = (email: string) => {
+    if (!email) return ''
+    if (!email.endsWith('@email.vccs.edu')) {
+      return 'Only @email.vccs.edu email addresses are accepted'
+    }
+    return ''
+  }
+
+  const checkEmailExists = useCallback(async (email: string) => {
+    console.log('Frontend: Starting email check for:', email)
+    
+    if (!email || !email.endsWith('@email.vccs.edu')) {
+      console.log('Frontend: Email format invalid, clearing state')
+      setEmailExists(null)
+      return
+    }
+
+    setIsCheckingEmail(true)
+    console.log('Frontend: Making API call to check email...')
+    
+    try {
+      const response = await fetch('/api/check-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      console.log('Frontend: API response status:', response.status)
+      const data = await response.json()
+      console.log('Frontend: API response data:', data)
+      
+      if (response.ok) {
+        setEmailExists(data)
+        if (data.exists) {
+          console.log('Frontend: Email exists, setting error:', data.message)
+          setEmailError(data.message || 'Email already exists')
+        } else {
+          console.log('Frontend: Email available, clearing error')
+          setEmailError('')
+        }
+      } else {
+        console.error('Frontend: API error response:', data.error)
+        setEmailExists(null)
+      }
+    } catch (error) {
+      console.error('Frontend: Failed to check email:', error)
+      setEmailExists(null)
+    } finally {
+      setIsCheckingEmail(false)
+      console.log('Frontend: Email check completed')
+    }
+  }, [])
+
+  // Debounced email checking
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.email) {
+        checkEmailExists(formData.email)
+      }
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.email, checkEmailExists])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+
+    // Clear email error when user starts typing
+    if (field === 'email') {
+      setEmailError('')
+      setEmailExists(null)
+    }
+  }
+
+  const handleEmailBlur = (email: string) => {
+    const error = validateEmail(email)
+    if (error) {
+      setEmailError(error)
+    } else if (email) {
+      checkEmailExists(email)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate email format
+    const emailValidationError = validateEmail(formData.email)
+    if (emailValidationError) {
+      setEmailError(emailValidationError)
+      return
+    }
+
+    // Check if email already exists
+    if (emailExists?.exists) {
+      setEmailError(emailExists.message || 'Email already exists')
+      return
+    }
+
+    // If still checking email, wait
+    if (isCheckingEmail) {
+      return
+    }
+
     setIsSubmitting(true)
     setSubmitStatus('idle')
     setErrorMessage('')
@@ -66,6 +169,8 @@ export default function JoinPage() {
           graduation_year: '',
           preferred_contact_method: 'email'
         })
+        setEmailExists(null)
+        setEmailError('')
       } else {
         setSubmitStatus('error')
         setErrorMessage(result.error || 'Failed to submit application')
@@ -243,14 +348,42 @@ export default function JoinPage() {
 
                   <div>
                     <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      required
-                      placeholder="your.email@email.vccs.edu"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        onBlur={(e) => handleEmailBlur(e.target.value)}
+                        required
+                        placeholder="your.email@email.vccs.edu"
+                        className={`${emailError ? 'border-red-500' : ''} ${emailExists?.exists === false ? 'border-green-500' : ''}`}
+                      />
+                      {isCheckingEmail && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                      {emailExists?.exists === false && !isCheckingEmail && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        </div>
+                      )}
+                      {emailExists?.exists === true && !isCheckingEmail && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        </div>
+                      )}
+                    </div>
+                    {emailError && (
+                      <p className="text-sm text-red-500 mt-1">{emailError}</p>
+                    )}
+                    {emailExists?.exists === false && !emailError && (
+                      <p className="text-sm text-green-500 mt-1">✓ Email is available</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Only @email.vccs.edu email addresses are accepted
+                    </p>
                   </div>
 
                   <div>

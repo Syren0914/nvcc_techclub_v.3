@@ -573,9 +573,11 @@ export default function ClubHomePage() {
                       </div>
                       <h3 className="text-2xl font-bold">{category.title}</h3>
                       <p className="text-muted-foreground">{category.description}</p>
-                      <Button variant="outline" className="rounded-full mt-4">
-                        Join This Team
-                      </Button>
+                      <Link href={"/join"}>
+                        <Button variant="outline" className="rounded-full mt-4">
+                          Join This Team
+                        </Button>
+                      </Link>
                     </motion.div>
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -948,7 +950,7 @@ export default function ClubHomePage() {
                   <p className="font-medium mb-2">Contact Us</p>
                   <div className="flex items-center gap-2 text-sm">
                     <Mail className="size-4" />
-                    <span>techclub@gmail.co</span>
+                    <span>nvcctechclub@gmail.com</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm mt-1">
                     <MessageSquare className="size-4" />

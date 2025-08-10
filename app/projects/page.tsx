@@ -364,7 +364,7 @@ export default function ProjectsPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="https://images.unsplash.com/photo-1536148935331-408321065b18?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     width={800}
                     height={600}
                     alt="Students brainstorming project ideas"

@@ -28,10 +28,17 @@ export default function CommunityPage() {
   const [mounted, setMounted] = useState(false)
   const [databaseStatus, setDatabaseStatus] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [communityData, setCommunityData] = useState({
+    platforms: [],
+    discussions: [],
+    members: []
+  })
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
     checkDatabaseStatus()
+    loadCommunityData()
   }, [])
 
   const checkDatabaseStatus = async () => {
@@ -46,181 +53,227 @@ export default function CommunityPage() {
     }
   }
 
-  const communityPlatforms = [
-    {
-      name: "Discord Server",
-      description: "Our primary communication platform for real-time chat, announcements, and collaboration.",
-      icon: <MessageSquare className="size-6" />,
-      link: "https://discord.gg/pwcdweEwjM",
-      buttonText: "Join Discord",
-      members: 215,
-      featured: true,
-    },
-    {
-      name: "GitHub Organization",
-      description: "Collaborate on code, contribute to projects, and showcase your work.",
-      icon: <Github className="size-6" />,
-      link: "https://github.com/techclub",
-      buttonText: "View GitHub",
-      members: 178,
-      featured: true,
-    },
-    {
-      name: "Minecraft Server",
-      description: "Relax and have fun with fellow members on our custom Minecraft server.",
-      icon: <Gamepad className="size-6" />,
-      link: "https://minecraft.techclub.university.edu",
-      buttonText: "Server Details",
-      members: 87,
-      featured: true,
-    },
-    {
-      name: "LinkedIn Group",
-      description: "Connect professionally with current members and alumni for networking opportunities.",
-      icon: <Users className="size-6" />,
-      link: "https://linkedin.com/groups/techclub",
-      buttonText: "Join Group",
-      members: 156,
-      featured: false,
-    },
-  ]
+  const loadCommunityData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Fetch community platforms from backend
+      const platformsResponse = await fetch('/api/community/platforms')
+      if (platformsResponse.ok) {
+        const platformsData = await platformsResponse.json()
+        setCommunityData(prev => ({ ...prev, platforms: platformsData }))
+      } else {
+        console.error('Failed to fetch platforms:', platformsResponse.status)
+      }
+      
+      // Fetch discussion categories from backend
+      const discussionsResponse = await fetch('/api/community/discussions')
+      if (discussionsResponse.ok) {
+        const discussionsData = await discussionsResponse.json()
+        setCommunityData(prev => ({ ...prev, discussions: discussionsData }))
+      } else {
+        console.error('Failed to fetch discussions:', discussionsResponse.status)
+      }
+      
+      // Fetch community members from backend
+      const membersResponse = await fetch('/api/community/members')
+      if (membersResponse.ok) {
+        const membersData = await membersResponse.json()
+        setCommunityData(prev => ({ ...prev, members: membersData }))
+      } else {
+        console.error('Failed to fetch members:', membersResponse.status)
+      }
+    } catch (error) {
+      console.error('Failed to load community data:', error)
+      setError('Failed to load community data. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const discussionCategories = [
-    {
-      name: "Web Development",
-      description: "Discuss frontend, backend, and full-stack web development topics.",
-      icon: <Code className="size-6" />,
-      recentTopics: [
+  // Use backend data if available, otherwise fall back to static data
+  const communityPlatforms = communityData.platforms.length > 0 
+    ? communityData.platforms 
+    : [
         {
-          title: "React vs. Vue in 2025",
-          author: "Sam Rodriguez",
-          replies: 24,
-          lastActive: "2 hours ago",
+          name: "Discord Server",
+          description: "Our primary communication platform for real-time chat, announcements, and collaboration.",
+          icon: <MessageSquare className="size-6" />,
+          link: "https://discord.gg/pwcdweEwjM",
+          buttonText: "Join Discord",
+          members: 215,
+          featured: true,
         },
         {
-          title: "Best practices for API authentication",
-          author: "Morgan Chen",
-          replies: 18,
-          lastActive: "1 day ago",
+          name: "GitHub Organization",
+          description: "Collaborate on code, contribute to projects, and showcase your work.",
+          icon: <Github className="size-6" />,
+          link: "https://github.com/techclub",
+          buttonText: "View GitHub",
+          members: 178,
+          featured: true,
         },
         {
-          title: "CSS Grid vs. Flexbox - when to use each",
-          author: "Taylor Smith",
-          replies: 32,
-          lastActive: "3 days ago",
-        },
-      ],
-    },
-    {
-      name: "Cybersecurity",
-      description: "Share security news, tools, and techniques.",
-      icon: <Shield className="size-6" />,
-      recentTopics: [
-        {
-          title: "Analyzing the latest ransomware trends",
-          author: "Jamie Lee",
-          replies: 15,
-          lastActive: "5 hours ago",
+          name: "Minecraft Server",
+          description: "Relax and have fun with fellow members on our custom Minecraft server.",
+          icon: <Gamepad className="size-6" />,
+          link: "https://minecraft.techclub.university.edu",
+          buttonText: "Server Details",
+          members: 87,
+          featured: true,
         },
         {
-          title: "Setting up a home security lab",
-          author: "Alex Johnson",
-          replies: 29,
-          lastActive: "2 days ago",
+          name: "LinkedIn Group",
+          description: "Connect professionally with current members and alumni for networking opportunities.",
+          icon: <Users className="size-6" />,
+          link: "https://linkedin.com/groups/techclub",
+          buttonText: "Join Group",
+          members: 156,
+          featured: false,
         },
-        {
-          title: "Web application penetration testing resources",
-          author: "Casey Wong",
-          replies: 21,
-          lastActive: "4 days ago",
-        },
-      ],
-    },
-    {
-      name: "Robotics",
-      description: "Discuss hardware, sensors, and programming for robotics projects.",
-      icon: <Cpu className="size-6" />,
-      recentTopics: [
-        {
-          title: "Arduino vs. Raspberry Pi for robotics",
-          author: "Jordan Patel",
-          replies: 27,
-          lastActive: "1 day ago",
-        },
-        {
-          title: "Computer vision techniques for object detection",
-          author: "Riley Kim",
-          replies: 14,
-          lastActive: "3 days ago",
-        },
-        {
-          title: "Motor control best practices",
-          author: "Alex Johnson",
-          replies: 19,
-          lastActive: "5 days ago",
-        },
-      ],
-    },
-  ]
+      ]
 
-  const communityMembers = [
-    {
-      name: "Alex Johnson",
-      role: "Club President",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 47,
-      joinDate: "September 2022",
-    },
-    {
-      name: "Sam Rodriguez",
-      role: "Web Development Lead",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 38,
-      joinDate: "October 2022",
-    },
-    {
-      name: "Jamie Lee",
-      role: "Cybersecurity Lead",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 32,
-      joinDate: "January 2023",
-    },
-    {
-      name: "Taylor Smith",
-      role: "Events Coordinator",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 29,
-      joinDate: "September 2023",
-    },
-    {
-      name: "Jordan Patel",
-      role: "Robotics Lead",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 35,
-      joinDate: "September 2022",
-    },
-    {
-      name: "Casey Wong",
-      role: "Outreach Coordinator",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 26,
-      joinDate: "January 2023",
-    },
-    {
-      name: "Morgan Chen",
-      role: "Secretary",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 24,
-      joinDate: "September 2023",
-    },
-    {
-      name: "Riley Kim",
-      role: "Marketing Director",
-      image: "/placeholder.svg?height=100&width=100",
-      contributions: 28,
-      joinDate: "January 2023",
-    },
-  ]
+  const discussionCategories = communityData.discussions.length > 0
+    ? communityData.discussions
+    : [
+        {
+          name: "Web Development",
+          description: "Discuss frontend, backend, and full-stack web development topics.",
+          icon: <Code className="size-6" />,
+          recentTopics: [
+            {
+              title: "React vs. Vue in 2025",
+              author: "Sam Rodriguez",
+              replies: 24,
+              lastActive: "2 hours ago",
+            },
+            {
+              title: "Best practices for API authentication",
+              author: "Morgan Chen",
+              replies: 18,
+              lastActive: "1 day ago",
+            },
+            {
+              title: "CSS Grid vs. Flexbox - when to use each",
+              author: "Taylor Smith",
+              replies: 32,
+              lastActive: "3 days ago",
+            },
+          ],
+        },
+        {
+          name: "Cybersecurity",
+          description: "Share security news, tools, and techniques.",
+          icon: <Shield className="size-6" />,
+          recentTopics: [
+            {
+              title: "Analyzing the latest ransomware trends",
+              author: "Jamie Lee",
+              replies: 15,
+              lastActive: "5 hours ago",
+            },
+            {
+              title: "Setting up a home security lab",
+              author: "Alex Johnson",
+              replies: 29,
+              lastActive: "2 days ago",
+            },
+            {
+              title: "Web application penetration testing resources",
+              author: "Casey Wong",
+              replies: 21,
+              lastActive: "4 days ago",
+            },
+          ],
+        },
+        {
+          name: "Robotics",
+          description: "Discuss hardware, sensors, and programming for robotics projects.",
+          icon: <Cpu className="size-6" />,
+          recentTopics: [
+            {
+              title: "Arduino vs. Raspberry Pi for robotics",
+              author: "Jordan Patel",
+              replies: 27,
+              lastActive: "1 day ago",
+            },
+            {
+              title: "Computer vision techniques for object detection",
+              author: "Riley Kim",
+              replies: 14,
+              lastActive: "3 days ago",
+            },
+            {
+              title: "Motor control best practices",
+              author: "Alex Johnson",
+              replies: 19,
+              lastActive: "5 days ago",
+            },
+          ],
+        },
+      ]
+
+  const communityMembers = communityData.members.length > 0
+    ? communityData.members
+    : [
+        {
+          name: "Alex Johnson",
+          role: "Club President",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 47,
+          joinDate: "September 2022",
+        },
+        {
+          name: "Sam Rodriguez",
+          role: "Web Development Lead",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 38,
+          joinDate: "October 2022",
+        },
+        {
+          name: "Jamie Lee",
+          role: "Cybersecurity Lead",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 32,
+          joinDate: "January 2023",
+        },
+        {
+          name: "Taylor Smith",
+          role: "Events Coordinator",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 29,
+          joinDate: "September 2023",
+        },
+        {
+          name: "Jordan Patel",
+          role: "Robotics Lead",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 35,
+          joinDate: "September 2022",
+        },
+        {
+          name: "Casey Wong",
+          role: "Outreach Coordinator",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 26,
+          joinDate: "January 2023",
+        },
+        {
+          name: "Morgan Chen",
+          role: "Secretary",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 24,
+          joinDate: "September 2023",
+        },
+        {
+          name: "Riley Kim",
+          role: "Marketing Director",
+          image: "/placeholder.svg?height=100&width=100",
+          contributions: 28,
+          joinDate: "January 2023",
+        },
+      ]
 
   const communityGuidelines = [
     {
@@ -277,6 +330,31 @@ export default function CommunityPage() {
             </div>
           </div>
         )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="container px-4 py-2">
+            <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-950/20 dark:border-red-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <span className="text-sm font-medium text-red-800 dark:text-red-200">
+                    {error}
+                  </span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={loadCommunityData}
+                  disabled={loading}
+                  className="border-red-200 text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Hero Section */}
         <section className="w-full py-20 md:py-28 overflow-hidden bg-muted/30">
@@ -298,11 +376,28 @@ export default function CommunityPage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button className="rounded-full">
-                    Join Our Discord
+                    <Link href="https://discord.gg/pwcdweEwjM" target="_blank">
+                      Join Our Discord
+                    </Link>
                     <ChevronRight className="ml-1 size-4" />
                   </Button>
                   <Button variant="outline" className="rounded-full">
                     Browse Discussions
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="rounded-full"
+                    onClick={loadCommunityData}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                        Refreshing...
+                      </>
+                    ) : (
+                      'Refresh Data'
+                    )}
                   </Button>
                 </div>
               </motion.div>
@@ -313,7 +408,7 @@ export default function CommunityPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="https://images.unsplash.com/photo-1705943145724-18c0920f5b61?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     width={800}
                     height={600}
                     alt="TechClub community members collaborating"
@@ -342,48 +437,57 @@ export default function CommunityPage() {
               </p>
             </motion.div>
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {communityPlatforms
-                .filter((platform) => platform.featured)
-                .map((platform, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: i * 0.1 }}
-                  >
-                    <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
-                      <CardContent className="p-6 flex flex-col h-full">
-                        <div className="size-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary mb-4">
-                          {platform.icon}
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">{platform.name}</h3>
-                        <p className="text-muted-foreground mb-4">{platform.description}</p>
-                        <div className="text-sm text-muted-foreground mb-6 flex-grow">
-                          <Users className="size-4 inline mr-1" />
-                          {platform.members} members
-                        </div>
-                        <Button className="rounded-full w-full" asChild>
-                          <Link href={platform.link} target="_blank">
-                            {platform.buttonText}
-                            <ExternalLink className="ml-1 size-4" />
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading community platforms...</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {communityPlatforms
+                    .filter((platform) => platform.featured)
+                    .map((platform, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                      >
+                        <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
+                          <CardContent className="p-6 flex flex-col h-full">
+                            <div className="size-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary mb-4">
+                              {platform.icon}
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">{platform.name}</h3>
+                            <p className="text-muted-foreground mb-4">{platform.description}</p>
+                            <div className="text-sm text-muted-foreground mb-6 flex-grow">
+                              <Users className="size-4 inline mr-1" />
+                              {platform.members} members
+                            </div>
+                            <Button className="rounded-full w-full" asChild>
+                              <Link href={platform.link} target="_blank">
+                                {platform.buttonText}
+                                <ExternalLink className="ml-1 size-4" />
+                              </Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                </div>
 
-            <div className="mt-12 text-center">
-              <Button variant="outline" className="rounded-full" asChild>
-                <Link href="#all-platforms">
-                  View All Platforms
-                  <ChevronRight className="ml-1 size-4" />
-                </Link>
-              </Button>
-            </div>
+                <div className="mt-12 text-center">
+                  <Button variant="outline" className="rounded-full" asChild>
+                    <Link href="#all-platforms">
+                      View All Platforms
+                      <ChevronRight className="ml-1 size-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </section>
 
@@ -404,61 +508,70 @@ export default function CommunityPage() {
               </p>
             </motion.div>
 
-            <div className="grid gap-8 md:grid-cols-3">
-              {discussionCategories.map((category, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                >
-                  <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="size-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary">
-                          {category.icon}
-                        </div>
-                        <CardTitle>{category.name}</CardTitle>
-                      </div>
-                      <CardDescription>{category.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <h4 className="text-sm font-medium text-muted-foreground">Recent Discussions</h4>
-                      <div className="space-y-3">
-                        {category.recentTopics.map((topic, j) => (
-                          <div key={j} className="border-b border-border/40 pb-3 last:border-0 last:pb-0">
-                            <Link href="#" className="font-medium hover:text-primary transition-colors">
-                              {topic.title}
-                            </Link>
-                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                              <span>By {topic.author}</span>
-                              <div className="flex items-center gap-2">
-                                <span>{topic.replies} replies</span>
-                                <span>•</span>
-                                <span>{topic.lastActive}</span>
-                              </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading discussion forums...</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-8 md:grid-cols-3">
+                  {discussionCategories.map((category, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: i * 0.1 }}
+                    >
+                      <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="size-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary">
+                              {category.icon}
                             </div>
+                            <CardTitle>{category.name}</CardTitle>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button variant="outline" className="rounded-full w-full">
-                        Browse All {category.name} Topics
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                          <CardDescription>{category.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <h4 className="text-sm font-medium text-muted-foreground">Recent Discussions</h4>
+                          <div className="space-y-3">
+                            {category.recentTopics.map((topic, j) => (
+                              <div key={j} className="border-b border-border/40 pb-3 last:border-0 last:pb-0">
+                                <Link href="#" className="font-medium hover:text-primary transition-colors">
+                                  {topic.title}
+                                </Link>
+                                <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                  <span>By {topic.author}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span>{topic.replies} replies</span>
+                                    <span>•</span>
+                                    <span>{topic.lastActive}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                        <CardFooter>
+                          <Button variant="outline" className="rounded-full w-full">
+                            Browse All {category.name} Topics
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
 
-            <div className="mt-12 text-center">
-              <Button className="rounded-full">
-                Start a New Discussion
-                <ArrowRight className="ml-1 size-4" />
-              </Button>
-            </div>
+                <div className="mt-12 text-center">
+                  <Button className="rounded-full">
+                    Start a New Discussion
+                    <ArrowRight className="ml-1 size-4" />
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </section>
 
@@ -479,32 +592,39 @@ export default function CommunityPage() {
               </p>
             </motion.div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {communityMembers.map((member, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.05 }}
-                >
-                  <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
-                    <CardContent className="p-4 flex flex-col items-center text-center">
-                      <Avatar className="size-16 mb-3">
-                        <AvatarImage src={member.image} alt={member.name} />
-                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <h3 className="font-bold">{member.name}</h3>
-                      <p className="text-sm text-primary mb-1">{member.role}</p>
-                      <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                        <p>{member.contributions} contributions</p>
-                        <p>Member since {member.joinDate}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading community members...</p>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {communityMembers.map((member, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.05 }}
+                  >
+                    <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
+                      <CardContent className="p-4 flex flex-col items-center text-center">
+                        <Avatar className="size-16 mb-3">
+                          <AvatarImage src={member.image} alt={member.name} />
+                          <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <h3 className="font-bold">{member.name}</h3>
+                        <p className="text-sm text-primary mb-1">{member.role}</p>
+                        <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                          <p>{member.contributions} contributions</p>
+                          <p>Member since {member.joinDate}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -621,7 +741,7 @@ export default function CommunityPage() {
               >
                 <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/40">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="https://images.unsplash.com/photo-1627398242454-45a1465c2479?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     width={800}
                     height={600}
                     alt="TechClub members collaborating on a project"
