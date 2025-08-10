@@ -3,6 +3,14 @@ import { supabase } from '@/lib/auth'
 
 export async function GET(request: Request) {
   try {
+    console.log('Events API: Starting to fetch events...')
+    
+    // Check if supabase client is initialized
+    if (!supabase) {
+      console.error('Events API: Supabase client is not initialized')
+      return NextResponse.json({ success: false, error: 'Database client not initialized' })
+    }
+
     const { data: events, error } = await supabase
       .from('events')
       .select('*')
@@ -10,13 +18,20 @@ export async function GET(request: Request) {
       .order('start_date', { ascending: true })
 
     if (error) {
-      console.error('Error fetching events:', error)
-      return NextResponse.json({ success: false, error: 'Failed to fetch events' })
+      console.error('Events API: Error fetching events:', error)
+      console.error('Events API: Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      return NextResponse.json({ success: false, error: `Failed to fetch events: ${error.message}` })
     }
 
+    console.log('Events API: Successfully fetched events:', events?.length || 0)
     return NextResponse.json({ success: true, data: events || [] })
   } catch (error) {
-    console.error('Error in events GET:', error)
+    console.error('Events API: Unexpected error:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' })
   }
 }

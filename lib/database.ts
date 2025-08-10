@@ -82,8 +82,8 @@ export async function getUpcomingEvents(): Promise<Event[]> {
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .gte('date', new Date().toISOString().split('T')[0])
-      .order('date', { ascending: true })
+      .gte('start_date', new Date().toISOString().split('T')[0])
+      .order('start_date', { ascending: true })
       .limit(4)
 
     if (error) {
@@ -114,7 +114,7 @@ export async function getAllEvents(): Promise<Event[]> {
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .order('date', { ascending: false })
+      .order('start_date', { ascending: false })
 
     if (error) {
       console.error('Error fetching all events:', error)

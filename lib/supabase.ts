@@ -27,15 +27,23 @@ export interface TeamMember {
 }
 
 export interface Event {
-  id: number
+  id: string
   title: string
-  date: string
-  time: string
-  location: string
-  description: string
-  type: string
-  is_online: boolean
+  start_date: string
+  end_date?: string
+  start_time?: string
+  end_time?: string
+  location?: string
+  description?: string
+  event_type?: string
+  type?: string
+  is_online?: boolean
+  max_attendees?: number
+  current_attendees?: number
+  status?: string
+  created_by?: string
   created_at: string
+  updated_at?: string
 }
 
 export interface Project {

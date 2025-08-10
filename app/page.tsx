@@ -44,12 +44,14 @@ import { TeamMember, Event, Project } from "@/lib/supabase"
 import { validateEmailDomain, getEmailDomainError } from "@/lib/auth"
 import Header from "@/components/Header"
 import DarkVeil from "./components/DarkVeil/DarkVeil"
+import LightRays from "./components/LightRays/LightRays"
 
 export default function ClubHomePage() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  
   
   // Database state
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -274,20 +276,43 @@ export default function ClubHomePage() {
       ],
     },
   ]
+  
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-20 md:py-32 lg:py-10 overflow-hidden">
-          <div className="absolute inset-0 -z-10 h-full w-full ">
-            <DarkVeil></DarkVeil>
+                <section className="w-full py-20 md:py-32 lg:py-10 overflow-hidden relative">
+          {/* LightRays Background - Full Coverage */}
+          <div className="absolute inset-0 -z-20 pointer-events-none" style={{ minHeight: '100vh' }}>
+            <LightRays
+              raysOrigin="top-center"
+              raysColor="#00ffff"
+              raysSpeed={1.5}
+              lightSpread={0.8}
+              rayLength={1.2}
+              followMouse={true}
+              mouseInfluence={0.1}
+              noiseAmount={0.1}
+              distortion={0.05}
+              className="w-full h-full"
+              zIndex="-z-10"
+            />
+            {/* Debug Info */}
+            <div className="absolute top-4 left-4 text-white bg-black p-2 rounded text-xs z-10">
+              LightRays Container - Should be visible
+            </div>
+            <div className="absolute top-4 right-4 text-white bg-black p-2 rounded text-xs z-10">
+              Position: absolute inset-0
+            </div>
           </div>
           
+          {/* Grid Pattern Background */}
+          <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
+          
           <div className="container px-4 md:px-6 relative">
-            <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
-
+            
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -367,8 +392,8 @@ export default function ClubHomePage() {
                 <div className="flex items-center gap-4">
                   <Calendar className="size-8 md:size-10" />
                   <div>
-                    <h2 className="text-xl md:text-2xl font-bold">Upcoming: {featuredEvent.title}</h2>
-                    <p className="text-primary-foreground/80">{featuredEvent.date} • {featuredEvent.location}</p>
+                    <h2 className="text-xl md:text-2xl font-bold">Upcoming: {featuredEvent?.title}</h2>
+                    <p className="text-primary-foreground/80">{new Date(featuredEvent?.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} • {featuredEvent?.location}</p>
                   </div>
                 </div>
                 <Button variant="secondary" className="rounded-full whitespace-nowrap">
@@ -641,11 +666,12 @@ export default function ClubHomePage() {
                       <h3 className="text-xl font-bold mb-2">{event.title}</h3>
                       <div className="flex items-center text-sm text-muted-foreground mb-2">
                         <Calendar className="size-4 mr-2" />
-                        {event.date}
+                        {new Date(event.date).toLocaleDateString()}
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground mb-2">
                         <Clock className="size-4 mr-2" />
-                        {event.time}
+                        {new Date(event.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })}
+
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground mb-4">
                         <MapPin className="size-4 mr-2" />
