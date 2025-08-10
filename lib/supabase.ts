@@ -29,21 +29,30 @@ export interface TeamMember {
 export interface Event {
   id: string
   title: string
-  start_date: string
+  date: string // Changed from start_date to match events page
+  start_date?: string // Keep for backward compatibility
   end_date?: string
-  start_time?: string
+  time?: string // Changed from start_time to match events page
+  start_time?: string // Keep for backward compatibility
   end_time?: string
   location?: string
   description?: string
-  event_type?: string
-  type?: string
+  type: string // Changed from event_type to match events page
+  event_type?: string // Keep for backward compatibility
   is_online?: boolean
+  isOnline?: boolean // Add alias for events page
   max_attendees?: number
   current_attendees?: number
+  capacity?: number // Add alias for events page
+  registered?: number // Add alias for events page
   status?: string
   created_by?: string
   created_at: string
   updated_at?: string
+  image_url?: string // Add image field for events page
+  tags?: string[] // Add tags field for events page
+  host?: string // Add host field for events page
+  is_featured?: boolean // Add featured field for events page
 }
 
 export interface Project {

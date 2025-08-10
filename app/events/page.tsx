@@ -43,18 +43,78 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState<UIEvent | null>(null)
   const [isEventModalOpen, setIsEventModalOpen] = useState(false)
+  const [dbStatus, setDbStatus] = useState<{ status: 'loading' | 'success' | 'error'; message: string }>({ status: 'loading', message: 'Checking database connection...' })
 
   useEffect(() => {
     setMounted(true)
+    // checkDatabaseStatus()
     loadEvents()
   }, [])
 
+  // const checkDatabaseStatus = async () => {
+  //   try {
+  //     const response = await fetch('/api/test-db')
+  //     const data = await response.json()
+      
+  //     if (data.success) {
+  //       setDbStatus({ status: 'success', message: `Database connected! Found ${data.eventsCount} events.` })
+  //     } else {
+  //       setDbStatus({ status: 'error', message: data.error || 'Database connection failed' })
+  //     }
+  //   } catch (error) {
+  //     setDbStatus({ status: 'error', message: 'Failed to test database connection' })
+  //   }
+  // }
+
   const loadEvents = async () => {
     try {
+      setLoading(true)
+      console.log('Loading events...')
       const eventsData = await getAllEvents()
-      setEvents(eventsData)
+      console.log('Events loaded:', eventsData)
+      console.log('Raw event data structure:', eventsData?.[0])
+      
+      // If no events from database, use fallback data
+      if (!eventsData || eventsData.length === 0) {
+        console.log('No events found in database, using fallback data')
+        const fallbackEvents: Event[] = [
+          {
+            id: 'fallback-1',
+            title: 'Welcome to TechClub!',
+            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            description: 'Join us for our first meeting of the semester!',
+            event_type: 'meeting',
+            type: 'Meeting',
+            is_online: false,
+            location: 'Room 123, Tech Building',
+            start_time: '18:00:00',
+            image_url: '/tech.jpg',
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 'fallback-2',
+            title: 'Web Development Workshop',
+            date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            start_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            description: 'Learn the basics of HTML, CSS, and JavaScript',
+            event_type: 'workshop',
+            type: 'Workshop',
+            is_online: false,
+            location: 'Computer Lab A',
+            start_time: '14:00:00',
+            image_url: '/web.png',
+            created_at: new Date().toISOString()
+          }
+        ]
+        setEvents(fallbackEvents)
+      } else {
+        setEvents(eventsData)
+      }
     } catch (error) {
       console.error('Error loading events:', error)
+      // Set empty array to prevent undefined errors
+      setEvents([])
     } finally {
       setLoading(false)
     }
@@ -66,7 +126,7 @@ export default function EventsPage() {
 
   // Normalize backend events for the UI
   type UIEvent = {
-    id: number
+    id: string // Changed from number to string to match database
     title: string
     date: string
     dateObj: Date
@@ -80,9 +140,11 @@ export default function EventsPage() {
     registered: number
     tags: string[]
     host: string
+    is_featured?: boolean
   }
 
   const normalizedEvents: UIEvent[] = useMemo(() => {
+    console.log('Normalizing events:', events)
     const toDisplayDate = (isoOrDate: string | null | undefined) => {
       if (!isoOrDate) return ""
       const d = new Date(isoOrDate)
@@ -108,7 +170,8 @@ export default function EventsPage() {
       const imageUrl = typeof dbImage === 'string' && dbImage.length > 0
         ? dbImage
         : pickFallbackImage(e.type, e.is_online)
-      return {
+      
+      const normalizedEvent = {
         id: e.id,
         title: e.title,
         date: toDisplayDate(e.date),
@@ -119,25 +182,45 @@ export default function EventsPage() {
         type: e.type || 'General',
         isOnline: !!e.is_online,
         image_url: imageUrl,
-        capacity: 0,
-        registered: 0,
+        capacity: e.capacity || e.max_attendees || 0,
+        registered: e.registered || e.current_attendees || 0,
         tags: [e.type || 'General'],
-        host: 'TechClub',
+        host: e.host || 'TechClub',
+        is_featured: anyEvent?.is_featured || false,
       }
+      
+      console.log(`Normalizing event "${e.title}":`, {
+        original: e,
+        normalized: normalizedEvent,
+        is_featured: anyEvent?.is_featured
+      })
+      
+      return normalizedEvent
     })
   }, [events])
 
-  const today = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
-  }, [])
 
-  const upcomingEvents = useMemo(() =>
-    normalizedEvents
-      .filter(ev => ev.dateObj >= today)
+
+  const upcomingEvents = useMemo(() => {
+    console.log('Filtering upcoming events. Normalized events:', normalizedEvents)
+    const filtered = normalizedEvents
+      .filter(ev => {
+        // Get the current date in local timezone
+        const now = new Date()
+        const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        
+        // Get the event date in local timezone
+        const eventDate = new Date(ev.dateObj)
+        const eventLocalDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate())
+        
+        const isUpcoming = eventLocalDate >= currentDate
+        console.log(`Event "${ev.title}" date: ${ev.dateObj}, eventLocalDate: ${eventLocalDate}, currentDate: ${currentDate}, isUpcoming: ${isUpcoming}`)
+        return isUpcoming
+      })
       .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())
-  , [normalizedEvents, today])
+    console.log('Filtered upcoming events:', filtered)
+    return filtered
+  }, [normalizedEvents])
 
   const pastEvents = [
     {
@@ -205,12 +288,43 @@ export default function EventsPage() {
     setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
   }
 
-  const featuredEvents = upcomingEvents.slice(0, 3)
+  const featuredEvents = upcomingEvents.filter(event => event.is_featured).slice(0, 3)
+  console.log('Featured events:', featuredEvents, 'from upcoming events:', upcomingEvents)
 
   return (
     <>
       {/* <Header /> */}
       <main className="flex-1">
+        {/* Debug Status Banner */}
+        {/* {process.env.NODE_ENV === 'development' && (
+          <div className={`p-4 text-sm font-mono ${
+            dbStatus.status === 'success' ? 'bg-green-100 text-green-800 border-b border-green-200' :
+            dbStatus.status === 'error' ? 'bg-red-100 text-red-800 border-b border-red-200' :
+            'bg-yellow-100 text-yellow-800 border-b border-yellow-200'
+          }`}>
+            <strong>DB Status:</strong> {dbStatus.message}
+            {dbStatus.status === 'error' && (
+              <div className="mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={checkDatabaseStatus}
+                  className="mr-2"
+                >
+                  Retry Connection
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.open('/admin/database-setup', '_blank')}
+                >
+                  Database Setup
+                </Button>
+              </div>
+            )}
+          </div>
+        )} */}
+
         {/* Hero Section */}
         <section className="w-full py-20 md:py-28 overflow-hidden bg-muted/30">
           <div className="container px-4 md:px-6">
@@ -276,78 +390,123 @@ export default function EventsPage() {
             </motion.div>
 
             <div className="grid gap-8 md:grid-cols-3">
-              {featuredEvents.map((event, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                >
-                  <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
-                    <div className="relative h-48 overflow-hidden">
-                      <Image
-                        src={event.image_url || "/placeholder.svg"}
-                        alt={event.title}
-                        fill
-                        className="object-cover transition-transform hover:scale-105"
-                      />
-                      <div className="absolute top-2 right-2">
-                        <Badge variant={event.isOnline ? "outline" : "secondary"} className="rounded-full">
-                          {event.isOnline ? "Online" : "In Person"}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardContent className="p-6 flex flex-col h-full">
-                      <div className="mb-4">
-                        <Badge variant="default" className="rounded-full mb-2">
-                          {event.type}
-                        </Badge>
-                        <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-                        <div className="flex items-center text-sm text-muted-foreground mb-2">
-                          <Calendar className="size-4 mr-2" />
-                          {event.date}
+              {loading ? (
+                // Loading skeleton for featured events
+                Array.from({ length: 3 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                  >
+                    <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
+                      <div className="relative h-48 overflow-hidden bg-muted animate-pulse"></div>
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="mb-4">
+                          <div className="h-6 bg-muted rounded mb-2 animate-pulse"></div>
+                          <div className="h-6 bg-muted rounded mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-muted rounded mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-muted rounded mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-muted rounded mb-4 animate-pulse"></div>
                         </div>
-                        <div className="flex items-center text-sm text-muted-foreground mb-2">
-                          <Clock className="size-4 mr-2" />
-                          {event.time}
+                        <div className="h-16 bg-muted rounded mb-6 animate-pulse"></div>
+                        <div className="flex gap-2 mb-4">
+                          <div className="h-6 w-16 bg-muted rounded animate-pulse"></div>
+                          <div className="h-6 w-20 bg-muted rounded animate-pulse"></div>
                         </div>
-                        <div className="flex items-center text-sm text-muted-foreground mb-4">
-                          <MapPin className="size-4 mr-2" />
-                          {event.location}
+                        <div className="flex items-center justify-between">
+                          <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+                          <div className="flex gap-2">
+                            <div className="h-9 w-20 bg-muted rounded animate-pulse"></div>
+                            <div className="h-9 w-16 bg-muted rounded animate-pulse"></div>
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-6 flex-grow line-clamp-3">{event.description}</p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {event.tags.map((tag, j) => (
-                          <Badge key={j} variant="outline" className="rounded-full">
-                            {tag}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              ) : featuredEvents.length > 0 ? (
+                featuredEvents.map((event, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                  >
+                    <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur">
+                      <div className="relative h-48 overflow-hidden">
+                        <Image
+                          src={event.image_url || "/placeholder.svg"}
+                          alt={event.title}
+                          fill
+                          className="object-cover transition-transform hover:scale-105"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <Badge variant={event.isOnline ? "outline" : "secondary"} className="rounded-full">
+                            {event.isOnline ? "Online" : "In Person"}
                           </Badge>
-                        ))}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">
-                          <Users className="size-4 inline mr-1" />
-                          {event.registered}/{event.capacity} registered
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            className="rounded-full"
-                            onClick={() => {
-                              setSelectedEvent(event)
-                              setIsEventModalOpen(true)
-                            }}
-                          >
-                            Learn More
-                          </Button>
-                          <Button className="rounded-full">RSVP</Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="mb-4">
+                          <Badge variant="default" className="rounded-full mb-2">
+                            {event.type}
+                          </Badge>
+                          <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                          <div className="flex items-center text-sm text-muted-foreground mb-2">
+                            <Calendar className="size-4 mr-2" />
+                            {event.date}
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground mb-2">
+                            <Clock className="size-4 mr-2" />
+                            {event.time}
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground mb-4">
+                            <MapPin className="size-4 mr-2" />
+                            {event.location}
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-6 flex-grow line-clamp-3">{event.description}</p>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {event.tags.map((tag, j) => (
+                            <Badge key={j} variant="outline" className="rounded-full">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-muted-foreground">
+                            <Users className="size-4 inline mr-1" />
+                            {event.registered}/{event.capacity} registered
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              className="rounded-full"
+                              onClick={() => {
+                                setSelectedEvent(event)
+                                setIsEventModalOpen(true)
+                              }}
+                            >
+                              Learn More
+                            </Button>
+                            <Button className="rounded-full">RSVP</Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-center py-12 col-span-3">
+                  <p className="text-muted-foreground mb-4">No events available at the moment.</p>
+                  <Button variant="outline" className="rounded-full">
+                    Check Back Later
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -460,7 +619,11 @@ export default function EventsPage() {
                 </div>
 
                 <TabsContent value="upcoming">
-                  {filteredEvents.length > 0 ? (
+                  {loading ? (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground mb-4">Loading events...</p>
+                    </div>
+                  ) : filteredEvents.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                       {filteredEvents.map((event, i) => (
                         <motion.div
@@ -528,6 +691,13 @@ export default function EventsPage() {
                           </Card>
                         </motion.div>
                       ))}
+                    </div>
+                  ) : events.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground mb-4">No events available at the moment.</p>
+                      <Button variant="outline" className="rounded-full">
+                        Check Back Later
+                      </Button>
                     </div>
                   ) : (
                     <div className="text-center py-12">

@@ -111,6 +111,21 @@ export async function getUpcomingEvents(): Promise<Event[]> {
 
 export async function getAllEvents(): Promise<Event[]> {
   try {
+    console.log('Fetching all events from database...')
+    
+    // Check if Supabase client is properly configured
+    if (!supabase) {
+      console.error('Supabase client is not initialized')
+      return []
+    }
+
+    // Test connection first
+    const connectionOk = await testSupabaseConnection()
+    if (!connectionOk) {
+      console.error('Supabase connection test failed')
+      return []
+    }
+
     const { data, error } = await supabase
       .from('events')
       .select('*')
@@ -125,7 +140,35 @@ export async function getAllEvents(): Promise<Event[]> {
       return []
     }
 
-    return data || []
+    console.log(`Successfully fetched ${data?.length || 0} events`)
+    console.log('Raw event data from database:', data?.[0])
+    
+    // Map database fields to expected interface
+    const mappedEvents = (data || []).map(event => {
+      const mapped = {
+        ...event,
+        // Ensure required fields exist and map database fields correctly
+        date: event.date || event.start_date || new Date().toISOString(),
+        time: event.time || event.start_time || '',
+        type: event.type || event.event_type || 'General',
+        isOnline: event.isOnline || event.is_online || false,
+        capacity: event.capacity || event.max_attendees || 0,
+        registered: event.registered || event.current_attendees || 0,
+        tags: event.tags || [event.type || event.event_type || 'General'],
+        host: event.host || 'TechClub',
+        image_url: event.image_url || event.image || ''
+      }
+      
+      console.log(`Mapped event "${event.title}":`, {
+        original: event,
+        mapped: mapped,
+        is_featured: event.is_featured
+      })
+      
+      return mapped
+    })
+
+    return mappedEvents
   } catch (err) {
     console.error('Unexpected error in getAllEvents:', err)
     return []
