@@ -8,6 +8,7 @@ export async function GET() {
     supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
     supabaseAnon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     resendApi: !!process.env.RESEND_API_KEY,
+    supabaseServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   }
 
   return NextResponse.json(envStatus)
