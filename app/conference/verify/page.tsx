@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CheckCircle, XCircle } from "lucide-react"
 
-export default function VerifyPage() {
+function VerifyClient() {
   const params = useSearchParams()
   const initialCode = params.get('code') || ''
   const [code, setCode] = useState(initialCode)
@@ -149,4 +149,10 @@ export default function VerifyPage() {
   )
 }
 
-
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <VerifyClient />
+    </Suspense>
+  )
+}
