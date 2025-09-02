@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { supabase as supabaseAnon } from '@/lib/supabase'
 import { Resend } from 'resend'
 import * as QRCode from 'qrcode'
 
@@ -27,9 +28,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const admin = getSupabaseAdmin()
+    let admin: ReturnType<typeof getSupabaseAdmin> | null = null
+    try {
+      admin = getSupabaseAdmin()
+    } catch (e) {
+      console.warn('SUPABASE_SERVICE_ROLE_KEY missing; falling back to anon client (RLS may block).')
+    }
+
+    const db = admin || supabaseAnon
+
     const attemptInsert = async () => {
-      return await admin
+      return await db
         .from('conference_registrations')
         .insert({
           email,
@@ -52,7 +61,16 @@ export async function POST(request: NextRequest) {
     if (insertError || !created) {
       console.error('Failed to create registration:', insertError)
       return NextResponse.json(
-        { error: 'Failed to create registration', details: insertError?.message || insertError },
+        {
+          error: 'Failed to create registration',
+          details: insertError?.message || insertError,
+          env: {
+            hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+            hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+            hasSupabaseAnon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+          },
+          hint: !admin ? 'Missing SUPABASE_SERVICE_ROLE_KEY on server. Add it to your deployment env or create an insert RLS policy.' : undefined
+        },
         { status: 500 }
       )
     }
