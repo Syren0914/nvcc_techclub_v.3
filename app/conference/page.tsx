@@ -16,7 +16,8 @@ export default function ConferenceSignupPage() {
     last_name: "",
     age: "",
     major: "",
-    expectations: ""
+    expectations: "",
+    participation: "attending"
   })
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<null | { success: boolean; message: string; code?: string; verifyUrl?: string }>(null)
@@ -40,14 +41,15 @@ export default function ConferenceSignupPage() {
           last_name: form.last_name,
           age: form.age ? Number(form.age) : undefined,
           major: form.major,
-          expectations: form.expectations
+          expectations: form.expectations,
+          participation: form.participation
         })
       })
       const data = await response.json()
       if (response.ok) {
         setResult({ success: true, message: data.message || 'Registered successfully! Check your email for QR.', code: data.code, verifyUrl: data.verifyUrl })
         setLastCode(data.code || null)
-        setForm({ email: "", first_name: "", last_name: "", age: "", major: "", expectations: "" })
+        setForm({ email: "", first_name: "", last_name: "", age: "", major: "", expectations: "", participation: "attending" })
       } else {
         setResult({ success: false, message: data.error || 'Failed to register' })
       }
@@ -106,6 +108,20 @@ export default function ConferenceSignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="expectations">What are you looking forward to?</Label>
                 <Textarea id="expectations" name="expectations" value={form.expectations} onChange={onChange} placeholder="Talks, networking, workshops..." />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="participation">Participation</Label>
+                <select
+                  id="participation"
+                  name="participation"
+                  className="border bg-background rounded-md h-10 px-3 text-sm w-full"
+                  value={form.participation}
+                  onChange={(e) => setForm(prev => ({ ...prev, participation: e.target.value }))}
+                >
+                  <option value="attending">Attending</option>
+                  <option value="presenting">Presenting</option>
+                </select>
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>

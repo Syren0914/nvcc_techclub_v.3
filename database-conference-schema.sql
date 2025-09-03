@@ -12,6 +12,7 @@ create table if not exists conference_registrations (
   age integer,
   major text,
   expectations text,
+  participation text check (participation in ('attending','presenting')) default 'attending',
   unique_code text not null unique,
   checked_in boolean not null default false,
   checked_in_at timestamp with time zone,

@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
       last_name,
       age,
       major,
-      expectations
+      expectations,
+      participation
     } = body || {}
 
     if (!email || !first_name || !last_name || !major) {
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
           age: age ? Number(age) : null,
           major,
           expectations: expectations || null,
+          participation: participation || 'attending',
           unique_code: generateUniqueCode()
         })
         .select('id, unique_code, created_at')
