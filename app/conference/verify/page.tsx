@@ -50,8 +50,9 @@ function VerifyClient() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-background p-6 relative overflow-hidden">
+      <div className="absolute inset-0 z-0 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none"></div>
+      <div className="container mx-auto max-w-6xl relative z-10">
         <div className="md:grid md:grid-cols-2 gap-8 items-start">
           <div className="max-w-xl w-full">
             <Card>

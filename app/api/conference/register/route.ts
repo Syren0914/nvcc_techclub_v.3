@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         <p>Hi ${first_name},</p>
         <p>You're registered for the Tech Club Technology Conference. Please bring this email to check in.</p>
         <p><strong>Your Check-in Code:</strong> <span style="font-size:18px; letter-spacing:1px">${unique_code}</span></p>
-        <p><a href="${verifyUrl}">Open your check-in link</a></p>
+        <p><a href="https://nvcctech.club">For more information, please visit the our website.</a></p>
         <div style="margin:16px 0"><img alt="Conference QR" src="${qrImgUrl}" width="256" height="256" /></div>
         <p style="margin-top:8px; font-size:12px; color:#555">If the QR doesn't load, use the code above at the door.</p>
       </div>
