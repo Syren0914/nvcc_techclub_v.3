@@ -61,8 +61,8 @@ export default function ConferenceSignupPage() {
   return (
     <div className="min-h-screen bg-background p-6 relative overflow-hidden">
       <div className="absolute inset-0 z-0 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none"></div>
-      <div className="container mx-auto max-w-6xl relative z-10">
-        <div className="md:grid md:grid-cols-2 gap-8 items-start">
+      <div className="container mx-auto max-w-6xl relative z-10 px-4">
+        <div className="lg:grid lg:grid-cols-2 gap-4 sm:gap-8 items-start">
           <div className="max-w-xl w-full">
             <div className="mb-8 text-right md:text-left">
               <h1 className="text-3xl font-bold mb-2">Honors Program: Technology Conference</h1>
@@ -122,12 +122,12 @@ export default function ConferenceSignupPage() {
                   <AlertDescription>
                     <div className="font-medium">{result.message}</div>
                     {result.success && result.code && (
-                      <div className="mt-3 space-y-2">
+                      <div className="mt-3 space-y-3">
                         <div className="text-sm">Your code: <code>{result.code}</code></div>
-                        <div className="flex items-center gap-3">
-                          <img src={`/api/conference/qr?code=${encodeURIComponent(result.code)}`} alt="QR" className="h-40 w-40 border rounded" />
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
+                          <img src={`/api/conference/qr?code=${encodeURIComponent(result.code)}`} alt="QR" className="w-40 h-40 sm:w-48 sm:h-48 border rounded" />
                           <a
-                            className="underline text-sm"
+                            className="underline text-sm sm:self-start"
                             href={`/api/conference/qr?code=${encodeURIComponent(result.code)}&download=1`}
                           >
                             Download QR
@@ -142,7 +142,7 @@ export default function ConferenceSignupPage() {
           </CardContent>
             </Card>
           </div>
-          <div className="md:ml-auto max-w-xl w-full">
+          <div className="lg:ml-auto max-w-xl w-full mt-6 lg:mt-0">
             <Card>
               <CardHeader>
                 <CardTitle>Here is the QR code for the conference</CardTitle>
@@ -150,9 +150,9 @@ export default function ConferenceSignupPage() {
               </CardHeader>
               <CardContent>
                 {lastCode ? (
-                  <div className="space-y-3 text-right md:text-left">
+                  <div className="space-y-3 text-center lg:text-left">
                     <div className="text-sm text-muted-foreground">Code: <code>{lastCode}</code></div>
-                    <img src={`/api/conference/qr?code=${encodeURIComponent(lastCode)}`} alt="Conference QR" className="h-56 w-56 border rounded ml-auto md:ml-0" />
+                    <img src={`/api/conference/qr?code=${encodeURIComponent(lastCode)}`} alt="Conference QR" className="mx-auto lg:mx-0 w-40 h-40 sm:w-56 sm:h-56 border rounded" />
                     <a
                       className="underline text-sm block"
                       href={`/api/conference/qr?code=${encodeURIComponent(lastCode)}&download=1`}
