@@ -17,15 +17,17 @@ function VerifyClient() {
   const [result, setResult] = useState<null | { valid: boolean; message?: string; attendee?: any; check_in?: boolean }>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [scanning, setScanning] = useState(false)
+  const [lastScanned, setLastScanned] = useState(initialCode || '')
 
-  const verify = async (doCheckIn: boolean) => {
+  const verify = async (doCheckIn: boolean, codeOverride?: string) => {
     setLoading(true)
     setResult(null)
     try {
+      const codeToVerify = (codeOverride ?? code).trim()
       const response = await fetch('/api/conference/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, check_in: doCheckIn })
+        body: JSON.stringify({ code: codeToVerify, check_in: doCheckIn })
       })
       const data = await response.json()
       if (response.ok) {
@@ -51,7 +53,49 @@ function VerifyClient() {
     <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto max-w-6xl">
         <div className="md:grid md:grid-cols-2 gap-8 items-start">
-          <div className="hidden md:block" />
+          <div className="max-w-xl w-full">
+            <Card>
+              <CardHeader>
+                <CardTitle>Latest Scan</CardTitle>
+                <CardDescription>Results appear here when a QR is scanned or code verified.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {loading && (
+                  <div className="text-sm text-muted-foreground">Verifying...</div>
+                )}
+                {!loading && !result && (
+                  <div className="text-sm text-muted-foreground">Start camera scan or enter a code to verify.</div>
+                )}
+                {result && (
+                  <div className={result.valid ? "border rounded p-3 bg-green-50" : "border rounded p-3 bg-red-50"}>
+                    {result.valid ? (
+                      <div>
+                        <div className="font-semibold">Verified</div>
+                        {result.attendee && (
+                          <div className="mt-1 text-sm space-y-1">
+                            <div>Name: {result.attendee.first_name} {result.attendee.last_name}</div>
+                            <div>Email: {result.attendee.email}</div>
+                          </div>
+                        )}
+                        {typeof result.attendee?.checked_in !== 'undefined' && (
+                          <div className="mt-1 text-sm">Checked In: {String(result.attendee.checked_in)}</div>
+                        )}
+                        <div className="mt-2 flex gap-2">
+                          <Button size="sm" onClick={() => verify(true, lastScanned || code)}>Check In</Button>
+                          <a className="underline text-sm self-center" href={`/api/conference/qr?code=${encodeURIComponent(lastScanned || code)}`} target="_blank" rel="noreferrer">Open QR</a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="font-semibold">Not Found</div>
+                        <div className="text-sm mt-1">{result.message || 'Code not found'}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
           <div className="md:ml-auto max-w-xl w-full">
             <div className="mb-8 text-right md:text-left">
               <h1 className="text-3xl font-bold mb-2">Conference Check-in</h1>
@@ -98,7 +142,11 @@ function VerifyClient() {
                     const codeReader = new BrowserQRCodeReader()
                     const result = await codeReader.decodeFromVideoDevice(undefined, videoRef.current!, (res) => {
                       if (res) {
-                        setCode(res.getText().split('code=')[1] || res.getText())
+                        const scanned = res.getText().split('code=')[1] || res.getText()
+                        setCode(scanned)
+                        setLastScanned(scanned)
+                        // Auto-verify on scan
+                        verify(false, scanned)
                       }
                     })
                   } catch (err) {
