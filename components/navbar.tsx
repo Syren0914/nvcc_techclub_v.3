@@ -79,7 +79,7 @@ export default function Navbar() {
                 <Link href="/login">Sign In</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/register">Join Us</Link>
+                <Link href="/join">Join Us</Link>
               </Button>
             </div>
           )}
@@ -135,7 +135,7 @@ export default function Navbar() {
                     </Link>
                   </Button>
                   <Button asChild size="sm" className="w-full">
-                    <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                    <Link href="/join" onClick={() => setIsMenuOpen(false)}>
                       Join Us
                     </Link>
                   </Button>
