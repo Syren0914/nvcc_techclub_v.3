@@ -39,6 +39,7 @@ import AdminEventManager from "@/components/admin/admin-event-manager";
 import AdminProjectManager from "@/components/admin/admin-project-manager";
 import AdminResourceManager from "@/components/admin/admin-resource-manager";
 import { ProjectMembersManager } from "@/components/admin/project-members-manager";
+import ConferenceStats from "@/components/admin/conference-stats";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface AdminDashboardData {
@@ -47,6 +48,7 @@ interface AdminDashboardData {
   totalProjects: number;
   totalResources: number;
   totalTeamMembers: number;
+  totalConferenceRegistrations: number;
   recentActivity: any[];
   databaseStatus: any;
 }
@@ -285,7 +287,7 @@ export default function AdminDashboardPage() {
         >
           {/* Quick Stats */}
           {data && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -353,6 +355,22 @@ export default function AdminDashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab("conference")}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {data.totalConferenceRegistrations || 0}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Conference
+                      </p>
+                    </div>
+                    <Calendar className="size-8 text-primary/20" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
@@ -383,13 +401,14 @@ export default function AdminDashboardPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
               <TabsTrigger value="members">Members</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
+              <TabsTrigger value="conference">Conference</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
             </TabsList>
 
@@ -644,6 +663,11 @@ export default function AdminDashboardPage() {
             {/* Resources Tab */}
             <TabsContent value="resources" className="space-y-6">
               <AdminResourceManager />
+            </TabsContent>
+
+            {/* Conference Tab */}
+            <TabsContent value="conference" className="space-y-6">
+              <ConferenceStats />
             </TabsContent>
 
             {/* Team Tab */}

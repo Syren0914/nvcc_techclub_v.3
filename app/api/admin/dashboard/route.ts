@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
       { count: totalProjects },
       { count: totalResources },
       { count: totalTeamMembers },
+      { count: totalConferenceRegistrations },
       { data: recentActivity }
     ] = await Promise.all([
       // Total users
@@ -74,6 +76,11 @@ export async function GET(request: NextRequest) {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved'),
       
+      // Total conference registrations (using admin client to bypass RLS)
+      getSupabaseAdmin()
+        .from('conference_registrations')
+        .select('*', { count: 'exact', head: true }),
+      
       // Recent activity (latest applications and project applications)
       supabase
         .from('membership_applications')
@@ -97,6 +104,7 @@ export async function GET(request: NextRequest) {
         totalProjects: totalProjects || 0,
         totalResources: totalResources || 0,
         totalTeamMembers: totalTeamMembers || 0,
+        totalConferenceRegistrations: totalConferenceRegistrations || 0,
         recentActivity: formattedActivity,
         databaseStatus: { status: 'healthy' }
       }
