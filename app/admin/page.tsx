@@ -259,6 +259,13 @@ export default function AdminDashboardPage() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => router.push("/admin/announcements")}
+            >
+              Annoucements  
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => router.push("/admin/setup-test-data")}
             >
               Setup Test Data

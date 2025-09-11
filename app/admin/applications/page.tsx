@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Eye, CheckCircle, XCircle, Clock, Mail, Phone, Github, Linkedin, Calendar, User, BookOpen, Target, GraduationCap, Check, X, Send } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
 interface MembershipApplication {
   id: string
@@ -43,6 +44,7 @@ function ApplicationsContent() {
   useEffect(() => {
     fetchApplications()
   }, [])
+  const router = useRouter()
 
   const fetchApplications = async () => {
     try {
@@ -248,6 +250,15 @@ function ApplicationsContent() {
               All submitted membership applications
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/admin/import-csv")}
+            >
+              Import CSV Members
+            </Button>
+          </CardContent>
           <CardContent>
             {applications.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
